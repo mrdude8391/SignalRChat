@@ -168,7 +168,10 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Models\" />
+    <ProjectReference Include="..\PVChat.Domain\PVChat.Domain.csproj">
+      <Project>{DBEF90DE-95E8-474C-AB50-61F1727D4660}</Project>
+      <Name>PVChat.Domain</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -188,14 +191,14 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>63180</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:63180/</IISUrl>
+          <IISUrl>http://localhost:9999/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
           </CustomServerUrl>
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
           <servers defaultServer="SelfHostServer">
-            <server name="SelfHostServer" exePath="" cmdArgs="" url="http://localhost:63180/" workingDir="" />
+            <server name="SelfHostServer" exePath="" cmdArgs="" url="http://localhost:9999/" workingDir="" />
           </servers>
         </WebProjectProperties>
       </FlavorProperties>

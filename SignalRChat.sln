@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalRChat", "SignalRChat\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PVChat.WPF", "PVChat.WPF\PVChat.WPF.csproj", "{8E19B7E3-146A-435E-8016-2886F57BD882}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PVChat.Domain", "PVChat.Domain\PVChat.Domain.csproj", "{DBEF90DE-95E8-474C-AB50-61F1727D4660}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8E19B7E3-146A-435E-8016-2886F57BD882}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E19B7E3-146A-435E-8016-2886F57BD882}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E19B7E3-146A-435E-8016-2886F57BD882}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBEF90DE-95E8-474C-AB50-61F1727D4660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBEF90DE-95E8-474C-AB50-61F1727D4660}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBEF90DE-95E8-474C-AB50-61F1727D4660}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBEF90DE-95E8-474C-AB50-61F1727D4660}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

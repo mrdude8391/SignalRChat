@@ -11,7 +11,7 @@ namespace SignalRChat
     {
         static void Main(string[] args)
         {
-            var url = "http://localhost:63180/";
+            var url = "http://localhost:9999/";
             using (WebApp.Start<Startup>(url))
             {
                 Console.WriteLine($"Server running at {url}");

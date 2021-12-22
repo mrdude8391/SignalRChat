@@ -18,13 +18,18 @@ namespace PVChat.WPF
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            HubConnection connection = new HubConnection("http://localhost:63180/pvchat", false);
+            HubConnection connection = new HubConnection("http://localhost:9999/pvchat", false);
+            SignalRChatService chatService = new SignalRChatService(connection);
+            NavigationService navService = new NavigationService();
 
-            PVChatViewModel viewModel = PVChatViewModel.CreatedConnectedViewModel(new SignalRChatService(connection));
+            //PVChatViewModel viewModel = new PVChatViewModel(chatService);
+            //LoginViewModel loginViewModel = new LoginViewModel(navService, chatService);
+
+            navService.CurrentViewModel = new LoginViewModel(navService, chatService);
 
             MainWindow window = new MainWindow
             {
-                DataContext = new MainViewModel(viewModel)
+                DataContext = new MainViewModel(navService, chatService)
             };
 
             window.Show();

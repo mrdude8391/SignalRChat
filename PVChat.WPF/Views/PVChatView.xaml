@@ -3,70 +3,138 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:PVChat.WPF.ViewModels"
-    d:DesignHeight="450"
+    d:DesignHeight="600"
     d:DesignWidth="800"
     FontSize="18"
     mc:Ignorable="d">
 
-    <StackPanel>
-        <!-- Header -->
-        <TextBlock
-            HorizontalAlignment="Center"
-            FontSize="32"
-            Text="Color Chat Room"
-            TextAlignment="Center" />
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <i:InvokeCommandAction Command="{Binding LogoutCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
 
-        <!-- Error Message -->
-        <TextBlock Margin="0 20 0 0"
-            HorizontalAlignment="Center"
-            Foreground="DarkRed"
-            Text="{Binding ErrorMessage}">
-            <TextBlock.Style>
-                <Style TargetType="TextBlock">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding HasErrorMessage}" Value="False">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBlock.Style>
-        </TextBlock>
+    <UserControl.Resources>
+        <DataTemplate x:Key="ParticipantsDataTemplate">
+            <TextBlock Text="{Binding Name}" />
+        </DataTemplate>
+    </UserControl.Resources>
 
-        <!-- Send Color Form -->
-        <StackPanel Margin="20 0">
-            <TextBlock Margin="0 20 0 0"
-                FontSize="24"
-                Text="Send Message" />
-            <TextBox Text="{Binding Path=Message}" />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-            <Button Grid.Column="1" Margin="0 20 0 0" Padding="10 3"
-                HorizontalAlignment="Left"
-                Command="{Binding SendMessageCommand}"
-                Content="Send" />
+        <StackPanel>
+            <!--  Header  -->
+            <TextBlock
+                HorizontalAlignment="Center"
+                FontSize="32"
+                Text="Chat Room"
+                TextAlignment="Center" />
+
+            <!--  Error Message  -->
+            <TextBlock
+                Margin="0,20,0,0"
+                HorizontalAlignment="Center"
+                Foreground="DarkRed"
+                Text="{Binding ErrorMessage}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasErrorMessage}" Value="False">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
         </StackPanel>
 
-        <!-- Color Messages Listing -->
-        <StackPanel Margin="20 20 20 0">
-            <TextBlock Margin="0 20 0 0"
-                FontSize="24"
-                Text="Messages" />
+        <Grid Grid.Row="1" Margin="0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <!--  Users Form  -->
+            <Border
+                Grid.RowSpan="2"
+                Grid.Column="0"
+                Margin="10,0,0,0"
+                BorderThickness="0,0,1,0"
+                SnapsToDevicePixels="True">
+                <ListBox
+                    ItemTemplate="{DynamicResource ParticipantsDataTemplate}"
+                    ItemsSource="{Binding Participants}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    SelectedItem="{Binding SelectedParticipant}" />
+            </Border>
 
-            <ListView Margin="0 20 0 0"
-                BorderThickness="0"
-                ItemsSource="{Binding Messages}"
-                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <WrapPanel>
-                            <TextBlock Text="{Binding}"/>
-                        </WrapPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-                
-                
-            </ListView>
-        </StackPanel>
-    </StackPanel>
+            <StackPanel
+                Grid.Column="1"
+                Margin="20,0"
+                VerticalAlignment="Bottom">
+                <TextBlock
+                    Margin="0,20,0,0"
+                    FontSize="24"
+                    Text="Messages" />
+                <!--  Messages Listing  -->
+                <ListView
+                    Margin="0,20,0,0"
+                    BorderThickness="0"
+                    ItemsSource="{Binding Messages}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <WrapPanel>
+                                <TextBlock Text="{Binding}" />
+                            </WrapPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel VerticalAlignment="Bottom" />
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                </ListView>
+
+
+                <!--  Send Message Form  -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock
+                        Margin="0,20,0,0"
+                        FontSize="24"
+                        Text="Send Message" />
+                    <TextBox AcceptsReturn="False" Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding SendMessageCommand}" />
+                        </TextBox.InputBindings>
+                    </TextBox>
+
+                    <Button
+                        Grid.Column="1"
+                        Margin="10,0,0,0"
+                        Padding="10,3"
+                        HorizontalAlignment="Left"
+                        Command="{Binding SendMessageCommand}"
+                        Content="Send" />
+                </Grid>
+
+            </StackPanel>
+        </Grid>
+    </Grid>
 </UserControl>

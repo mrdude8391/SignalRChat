@@ -49,7 +49,9 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Web.Services" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -68,11 +70,20 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Commands\CommandBase.cs" />
+    <Compile Include="Commands\ConnectCommand.cs" />
+    <Compile Include="Commands\LoginCommand.cs" />
+    <Compile Include="Commands\LogoutCommand.cs" />
     <Compile Include="Commands\SendMessageCommand.cs" />
+    <Compile Include="Services\NavigationService.cs" />
     <Compile Include="Services\SignalRChatService.cs" />
+    <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\PVChatViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
+    <Compile Include="Views\LoginView.xaml.cs">
+      <DependentUpon>LoginView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\PVChatView.xaml.cs">
       <DependentUpon>PVChatView.xaml</DependentUpon>
     </Compile>
@@ -88,6 +99,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\LoginView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\PVChatView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -111,7 +126,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -122,6 +139,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PVChat.Domain\PVChat.Domain.csproj">
+      <Project>{DBEF90DE-95E8-474C-AB50-61F1727D4660}</Project>
+      <Name>PVChat.Domain</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SignalRChat\SignalRChat.csproj">
       <Project>{403ECFC1-DCAE-42B6-8BAB-7B2684110AF5}</Project>
       <Name>SignalRChat</Name>

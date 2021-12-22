@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PVChat.WPF.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,14 +16,15 @@ using System.Windows.Shapes;
 namespace PVChat.WPF.Views
 {
     /// <summary>
-    /// Interaction logic for PVChatView.xaml
+    /// Interaction logic for LoginView.xaml
     /// </summary>
-    public partial class PVChatView : UserControl
+    public partial class LoginView : UserControl
     {
-        public PVChatView()
+        public LoginView()
         {
             InitializeComponent();
-            
         }
+
+        
     }
 }

@@ -1,13 +1,43 @@
-﻿using PVChat.WPF.Commands;
+﻿using PVChat.Domain.Models;
+using PVChat.Domain.Services;
+using PVChat.WPF.Commands;
 using PVChat.WPF.Services;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace PVChat.WPF.ViewModels
 {
     public class PVChatViewModel : ViewModelBase
     {
+        private string _errorMessage = string.Empty;
+
+        public string ErrorMessage
+        {
+            get { return _errorMessage; }
+            set
+            {
+                _errorMessage = value;
+                OnPropertyChanged(nameof(ErrorMessage));
+                OnPropertyChanged(nameof(HasErrorMessage));
+            }
+        }
+
+        private bool _isConnected;
+
+        public bool IsConnected
+        {
+            get { return _isConnected; }
+            set
+            {
+                _isConnected = value;
+                OnPropertyChanged(nameof(IsConnected));
+            }
+        }
+
         private string _message;
 
         public string Message
@@ -20,66 +50,115 @@ namespace PVChat.WPF.ViewModels
             }
         }
 
-        public ObservableCollection<string> Messages { get; }
+        private string _name;
 
-        private string _errorMessage = string.Empty;
-
-        public string ErrorMessage
+        public string Name
         {
-            get
-            {
-                return _errorMessage;
-            }
+            get { return _name; }
             set
             {
-                _errorMessage = value;
-                OnPropertyChanged(nameof(ErrorMessage));
-                OnPropertyChanged(nameof(HasErrorMessage));
+                _name = value;
+                OnPropertyChanged(nameof(Name));
             }
         }
 
         public bool HasErrorMessage => !string.IsNullOrEmpty(ErrorMessage);
+        public ObservableCollection<string> Messages { get; } = new ObservableCollection<string>();
+        public ObservableCollection<ParticipantModel> Participants { get; } = new ObservableCollection<ParticipantModel>();
 
-        private bool _isConnected;
+        private ParticipantModel _selectedParticipant;
 
-        public bool IsConnected
+        public ParticipantModel SelectedParticipant
         {
-            get
-            {
-                return _isConnected;
-            }
-            set
-            {
-                _isConnected = value;
-                OnPropertyChanged(nameof(IsConnected));
-            }
+            get { return _selectedParticipant; }
+            set { _selectedParticipant = value; OnPropertyChanged(nameof(SelectedParticipant)); }
         }
 
+        public ICommand ConnectCommand { get; }
         public ICommand SendMessageCommand { get; }
+        public ICommand LogoutCommand { get; }
 
-        public PVChatViewModel(SignalRChatService chatService)
+        private readonly ISignalRChatService _chatService;
+        private readonly List<UserModel> _users;
+
+        public PVChatViewModel(ISignalRChatService chatService, List<UserModel> Users)
         {
+            _chatService = chatService;
+            _users = Users;
+
             SendMessageCommand = new SendMessageCommand(this, chatService);
-            Messages = new ObservableCollection<string>{ "A", "B" }; 
-            chatService.MessageReceived += ChatserviceMessageReceived;
+            ConnectCommand = new ConnectCommand(this, chatService);
+            LogoutCommand = new LogoutCommand(chatService);
+
+            Messages = new ObservableCollection<string>();
+            Participants = new ObservableCollection<ParticipantModel>();
+            Users.ForEach(u => Participants.Add(new ParticipantModel { Name = u.Name }));
+
+            _chatService.BroadcastReceived += BroadcastMessageReceived;
+            _chatService.LoggedIn += OtherUserLoggedIn;
+            _chatService.ParticipantLogout += OtherUserLoggedOut;
+            _chatService.MessageReceived += MessageReceived;
+            _chatService.MessageSent += MessageSent;
+            _chatService.MessageDelivered += MessageDelivered;
         }
 
-        public static PVChatViewModel CreatedConnectedViewModel(SignalRChatService chatService)
+        
+
+        private async void MessageReceived(string sender, MessageModel model)
         {
-            PVChatViewModel viewModel = new PVChatViewModel(chatService);
-            chatService.Connect().ContinueWith(task =>
+            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                if (task.Exception != null)
-                {
-                    viewModel.ErrorMessage = "Unable to connect to chat hub";
-                }
+                Messages.Add($"{sender}: {model.Message}");
             });
-            return viewModel;
+
+            await _chatService.ConfirmMessageDelivered(sender, model);
         }
 
-        private void ChatserviceMessageReceived(string message)
+        private void MessageSent(string message)
         {
-            Messages.Add(message);
+            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
+            {
+                Messages.Add($"{message}");
+            });
+        }
+
+        private void MessageDelivered(string confirm)
+        {
+            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
+            {
+                Messages.Add($"{confirm}");
+            });
+        }
+
+        private void BroadcastMessageReceived(string message)
+        {
+            //Might not need this LINE outside of prototype
+            //LINE exists because of Thread Affinity, the VM is created in APP.CS so the Messages <observablecollection> is created in a different thread
+            //LINE tells it which thread to add to
+            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
+            {
+                Messages.Add(message);
+            });
+        }
+
+        private void OtherUserLoggedIn(UserModel user)
+        {
+            App.Current.Dispatcher.Invoke((Action)delegate
+            {
+                Messages.Add($"{user.Name} has logged in.");
+                Participants.Add(new ParticipantModel
+                {
+                    Name = user.Name,
+                });
+            });
+        }
+        private void OtherUserLoggedOut(UserModel user)
+        {
+            App.Current.Dispatcher.Invoke((Action)delegate
+            {
+                Messages.Add($"{user.Name} has logged out.");
+                Participants.Remove(Participants.Where(o => o.Name == user.Name).SingleOrDefault());
+            });
         }
     }
 }
