@@ -1,14 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PVChat.Domain.Models
+﻿namespace PVChat.Domain.Models
 {
-    public class UserModel
+    public class UserModel : ModelBase
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
+        private bool _unread;
+
+        public bool Unread
+        {
+            get { return _unread; }
+            set
+            {
+                _unread = value;
+                OnPropertyChanged(nameof(Unread));
+            }
+        }
     }
 }

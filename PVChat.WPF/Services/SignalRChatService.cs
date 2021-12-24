@@ -20,8 +20,8 @@ namespace PVChat.WPF.Services
         public event Action ConnectionClosed;
         public event Action<UserModel> ParticipantLogout;
         public event Action<string> BroadcastReceived;
-        public event Action<string, MessageModel> MessageReceived;
-        public event Action<string> MessageSent;
+        public event Action<MessageModel> MessageReceived;
+        public event Action<MessageModel> MessageSent;
         public event Action<string> MessageDelivered;
         
 
@@ -34,8 +34,8 @@ namespace PVChat.WPF.Services
             _proxy.On<UserModel>("ParticipantLogin", (u) => LoggedIn?.Invoke(u));
             _proxy.On<UserModel>("ParticipantLogout", (u) => ParticipantLogout?.Invoke(u));
             _proxy.On<string>("BroadcastReceived", (data) => BroadcastReceived?.Invoke(data));
-            _proxy.On<string, MessageModel>("MessageReceived", (sender, msg) => MessageReceived?.Invoke(sender, msg));
-            _proxy.On<string>("MessageSent", (msg) => MessageSent?.Invoke(msg));
+            _proxy.On<MessageModel>("MessageReceived", (msg) => MessageReceived?.Invoke(msg));
+            _proxy.On<MessageModel>("MessageSent", (msg) => MessageSent?.Invoke(msg));
             _proxy.On<string>("MessageDelivered", (confirm) => MessageDelivered?.Invoke(confirm));
 
             _connection.Closed += Disconnected;
@@ -65,15 +65,20 @@ namespace PVChat.WPF.Services
         {
             await _proxy.Invoke("BroadcastMessage", message);
         }
-        
-        public async Task SendMessage(string recipient, string message)
+
+        public async Task<List<MessageModel>> GetMessages(UserModel user)
         {
-            await _proxy.Invoke("SendMessage", new object[] { recipient, message });
+            return await _proxy.Invoke<List<MessageModel>>("GetMessages", user);
+        }
+        
+        public async Task SendMessage(string recepient, MessageModel message)
+        {
+            await _proxy.Invoke("SendMessage", new object[] { recepient, message });
         }
 
-        public async Task ConfirmMessageDelivered(string sender, MessageModel model)
+        public async Task ConfirmMessageDelivered(MessageModel message)
         {
-            await _proxy.Invoke("MessageDelivered", new object[] { sender, model });
+            await _proxy.Invoke("MessageDelivered", message);
         }
     }
 }

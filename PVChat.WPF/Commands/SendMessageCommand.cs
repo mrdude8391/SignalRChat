@@ -21,8 +21,21 @@ namespace PVChat.WPF.Commands
         {
             try
             {
-                //await _chatService.BroadcastMessage(_viewModel.Message); //_viewModel.Message
-                await _chatService.SendMessage(_viewModel.SelectedParticipant.Name, _viewModel.Message);
+                var recepient = _viewModel.SelectedUser.Name;
+                MessageModel newMessage = new MessageModel
+                {
+                    //MessageId = Default
+                    //SenderId = Get in hub
+                    ReceiverId = _viewModel.SelectedUser.Id,
+                    Message = _viewModel.Message,
+                    //Status = default,
+                    //CreatedTime = default
+                    //SentTime = not yet
+                    //DeliveredTime = not yet
+                };
+                await _chatService.SendMessage(recepient, newMessage);
+                _viewModel.SelectedMessages.Add(newMessage);
+                _viewModel.Messages.Add(newMessage);
                 _viewModel.ErrorMessage = string.Empty;
                 _viewModel.Message = string.Empty;
             }

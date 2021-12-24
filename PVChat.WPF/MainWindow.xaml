@@ -24,6 +24,9 @@
             <DataTemplate DataType="{x:Type vm:PVChatViewModel}" >
                 <views:PVChatView/>
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ContactViewModel}">
+                <views:ContactView />
+            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:LoginViewModel}">
                 <views:LoginView/>
             </DataTemplate>

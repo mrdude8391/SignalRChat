@@ -13,16 +13,16 @@ namespace PVChat.Domain.Services
         event Action<UserModel> ParticipantLogout;
         event Action ConnectionClosed;
         event Action<string> BroadcastReceived;
-        event Action<string, MessageModel> MessageReceived;
-        event Action<string> MessageSent;
+        event Action<MessageModel> MessageReceived;
+        event Action<MessageModel> MessageSent;
         event Action<string> MessageDelivered;
 
         Task Connect();
         Task Logout();
         Task BroadcastMessage(string message);
-        Task SendMessage(string recipient, string message);
-        Task ConfirmMessageDelivered(string sender, MessageModel model);
+        Task SendMessage(string recepient, MessageModel message);
+        Task ConfirmMessageDelivered(MessageModel message);
         Task<List<UserModel>> Login(string Name);
-        
+        Task<List<MessageModel>> GetMessages(UserModel user);
     }
 }

@@ -12,13 +12,14 @@ namespace SignalRChat
 {
     //Summary//
     //The hub is a medium point between server and client that lets the client call methods
-    //Clients connect to hubs and then each hub can have different functions 
+    //Clients connect to hubs and then each hub can have different functions
     //Summar//
     [HubName("PVChatHub")]
     public class ChatHub : Hub
     {
         private static ConcurrentDictionary<string, UserModel> ChatClients = new ConcurrentDictionary<string, UserModel>();
         private static ObservableCollection<MessageModel> MessageDb = new ObservableCollection<MessageModel>();
+
         public List<UserModel> Login(string name)
         {
             if (!ChatClients.ContainsKey(name))
@@ -27,7 +28,7 @@ namespace SignalRChat
                 List<UserModel> users = new List<UserModel>(ChatClients.Values);
                 UserModel newUser = new UserModel
                 {
-                    ID = Context.ConnectionId,
+                    Id = Context.ConnectionId,
                     Name = name,
                 };
                 var added = ChatClients.TryAdd(name, newUser);
@@ -41,7 +42,6 @@ namespace SignalRChat
 
             return null;
         }
-
 
         public void Logout()
         {
@@ -58,7 +58,7 @@ namespace SignalRChat
 
         public override Task OnDisconnected(bool stopCalled)
         {
-            var userName = ChatClients.SingleOrDefault(o => o.Value.ID == Context.ConnectionId).Key;
+            var userName = ChatClients.SingleOrDefault(o => o.Value.Id == Context.ConnectionId).Key;
             if (userName != null)
             {
                 //
@@ -71,7 +71,7 @@ namespace SignalRChat
 
         public override Task OnReconnected()
         {
-            var userName = ChatClients.SingleOrDefault((c) => c.Value.ID == Context.ConnectionId).Key;
+            var userName = ChatClients.SingleOrDefault((c) => c.Value.Id == Context.ConnectionId).Key;
             if (userName != null)
             {
                 //
@@ -81,55 +81,62 @@ namespace SignalRChat
             return base.OnReconnected();
         }
 
-        public async Task SendMessage(string recepient, string message)
+        public List<MessageModel> GetMessages(UserModel user)
+        {
+            var sender = Clients.CallerState.Id;
+            var target = user.Id;
+            ObservableCollection<MessageModel> messages = new ObservableCollection<MessageModel>();
+            foreach (var msg in MessageDb
+                .Where(o => o.SenderId == sender || o.SenderId == target)
+                .Where(o => o.ReceiverId == target || o.ReceiverId == sender))
+            {
+                messages.Add(msg);
+            }
+
+            return messages.ToList();
+        }
+
+        public async Task SendMessage(string recepient, MessageModel message)
         {
             var sender = Clients.CallerState.UserName;
-            if (!string.IsNullOrEmpty(sender) && recepient != sender && !string.IsNullOrEmpty(message) && ChatClients.ContainsKey(recepient))
+            if (!string.IsNullOrEmpty(sender) && recepient != sender && !string.IsNullOrEmpty(message.Message) && ChatClients.ContainsKey(recepient))
             {
+
                 UserModel client = new UserModel();
                 ChatClients.TryGetValue(recepient, out client);
 
-                MessageModel newMessage = new MessageModel
-                {
-                    //MessageId = Default
-                    SenderId = Clients.CallerState.Id,
-                    ReceiverId = client.ID,
-                    Message = message,
-                    Status = MessageStatus.Sent,
-                    //CreatedTime = default
-                    SentTime = DateTime.Now,
-                };
+                message.SenderId = Clients.CallerState.Id;
+                message.Status = MessageStatus.Sent;
+                message.SentTime = DateTime.Now;
 
-                MessageDb.Add(newMessage);
-                
+                MessageDb.Add(message);
+
                 //
-                await Clients.Client(client.ID).MessageReceived(sender, newMessage);
-                await Clients.Caller.MessageSent("Message was sent");
+                await Clients.Client(client.Id).MessageReceived(message);
+                await Clients.Caller.MessageSent(message);
             }
         }
-        public async Task MessageDelivered(string sender, MessageModel model)
+
+        public async Task MessageDelivered(MessageModel message)
         {
+            var sender = message.SenderId;
             if (!string.IsNullOrEmpty(sender))
             {
-                UserModel client = new UserModel();
-                ChatClients.TryGetValue(sender, out client);
-
+                
                 foreach (var Message in MessageDb
-                    .Where(o => o.MessageId == model.MessageId))
+                    .Where(o => o.MessageId == message.MessageId))
                 {
                     Message.DeliveredTime = DateTime.Now;
                     Message.Status = MessageStatus.Delivered;
                 }
                 //
-                await Clients.Client(client.ID).MessageDelivered("Message delivered");
+                await Clients.Client(sender).MessageDelivered("Message delivered");
             }
         }
 
-
         public async Task BroadcastMessage(string message)
         {
-            
-            // 
+            //
             await Clients.All.BroadcastReceived(message);
             Console.WriteLine("Received Message");
         }

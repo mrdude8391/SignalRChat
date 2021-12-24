@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\MessageModel.cs" />
+    <Compile Include="Models\ModelBase.cs" />
     <Compile Include="Models\ParticipantModel.cs" />
     <Compile Include="Models\UserModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

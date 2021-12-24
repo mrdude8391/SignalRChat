@@ -6,6 +6,7 @@
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:PVChat.WPF.ViewModels"
+    xmlns:utils="clr-namespace:PVChat.WPF.Utils"
     d:DesignHeight="600"
     d:DesignWidth="800"
     FontSize="18"
@@ -18,9 +19,28 @@
     </i:Interaction.Triggers>
 
     <UserControl.Resources>
-        <DataTemplate x:Key="ParticipantsDataTemplate">
-            <TextBlock Text="{Binding Name}" />
+        <DataTemplate x:Key="UsersDataTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Name}" />
+                <TextBlock Grid.Column="1" Name="NewMessage" Text="New" Visibility="Hidden" />
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding Unread}" Value="True">
+                    <Setter TargetName="NewMessage" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate >
+
+        <DataTemplate x:Key="MessagesDataTemplate" >
+            <WrapPanel>
+                <TextBlock Text="{Binding Message}" />
+            </WrapPanel>
         </DataTemplate>
+
     </UserControl.Resources>
 
     <Grid>
@@ -30,6 +50,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel>
+            
             <!--  Header  -->
             <TextBlock
                 HorizontalAlignment="Center"
@@ -53,6 +74,11 @@
                     </Style>
                 </TextBlock.Style>
             </TextBlock>
+
+            <TextBlock Text="{Binding SelectedUser.Name}"
+                       HorizontalAlignment="Center">
+                
+            </TextBlock>
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="0,10">
@@ -61,7 +87,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="200" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <!--  Users Form  -->
@@ -72,69 +98,79 @@
                 BorderThickness="0,0,1,0"
                 SnapsToDevicePixels="True">
                 <ListBox
-                    ItemTemplate="{DynamicResource ParticipantsDataTemplate}"
-                    ItemsSource="{Binding Participants}"
+                    ItemTemplate="{DynamicResource UsersDataTemplate}"
+                    ItemsSource="{Binding Users}"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    SelectedItem="{Binding SelectedParticipant}" />
+                    SelectedItem="{Binding SelectedUser}" />
             </Border>
 
-            <StackPanel
-                Grid.Column="1"
-                Margin="20,0"
-                VerticalAlignment="Bottom">
-                <TextBlock
-                    Margin="0,20,0,0"
-                    FontSize="24"
-                    Text="Messages" />
+                
                 <!--  Messages Listing  -->
-                <ListView
+
+
+            <!--<ListView 
                     Margin="0,20,0,0"
                     BorderThickness="0"
-                    ItemsSource="{Binding Messages}"
+                    ItemsSource="{Binding SelectedMessages}"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <WrapPanel>
-                                <TextBlock Text="{Binding}" />
-                            </WrapPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <VirtualizingStackPanel VerticalAlignment="Bottom" />
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                </ListView>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <WrapPanel>
+                            <TextBlock Text="{Binding Message}" />
+                        </WrapPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel VerticalAlignment="Bottom" />
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+            </ListView>-->
 
+            <ItemsControl x:Name="MessagesItemsCtrl" Grid.Column="1" Margin="0,5,0,0" 
+                      ItemsSource="{Binding SelectedMessages}" 
+                      ItemTemplate="{DynamicResource MessagesDataTemplate}"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <i:Interaction.Behaviors>
+                    <utils:BringNewItemIntoViewBehavior/>
+                </i:Interaction.Behaviors>
+                <ItemsControl.Template>
+                    <ControlTemplate TargetType="ItemsControl">
+                        <ScrollViewer>
+                            <ItemsPresenter/>
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+            </ItemsControl>
 
-                <!--  Send Message Form  -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+            <!--  Send Message Form  -->
+            <Grid Grid.Column="1"
+                  Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-                    <TextBlock
+                <TextBlock
                         Margin="0,20,0,0"
                         FontSize="24"
                         Text="Send Message" />
-                    <TextBox AcceptsReturn="False" Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBox.InputBindings>
-                            <KeyBinding Key="Return" Command="{Binding SendMessageCommand}" />
-                        </TextBox.InputBindings>
-                    </TextBox>
+                <TextBox AcceptsReturn="False" Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding SendMessageCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
 
-                    <Button
+                <Button
                         Grid.Column="1"
                         Margin="10,0,0,0"
                         Padding="10,3"
                         HorizontalAlignment="Left"
                         Command="{Binding SendMessageCommand}"
                         Content="Send" />
-                </Grid>
-
-            </StackPanel>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>
