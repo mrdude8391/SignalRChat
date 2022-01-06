@@ -38,7 +38,7 @@ namespace PVChat.WPF.Services
             _proxy.On<MessageModel>("MessageSent", (msg) => MessageSent?.Invoke(msg));
             _proxy.On<string>("MessageDelivered", (confirm) => MessageDelivered?.Invoke(confirm));
 
-            _connection.Closed += Disconnected;
+            _connection.Closed += Disconnect;
         }
 
 
@@ -47,7 +47,7 @@ namespace PVChat.WPF.Services
             await _connection.Start();
             Console.WriteLine("Connected");
         }
-        private void Disconnected()
+        private void Disconnect()
         {
             ConnectionClosed?.Invoke();
         }

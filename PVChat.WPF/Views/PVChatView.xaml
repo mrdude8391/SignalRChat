@@ -4,9 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:PVChat.WPF.ViewModels"
     xmlns:utils="clr-namespace:PVChat.WPF.Utils"
+    xmlns:vm="clr-namespace:PVChat.WPF.ViewModels"
     d:DesignHeight="600"
     d:DesignWidth="800"
     FontSize="18"
@@ -19,26 +20,72 @@
     </i:Interaction.Triggers>
 
     <UserControl.Resources>
+
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
         <DataTemplate x:Key="UsersDataTemplate">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding Name}" />
-                <TextBlock Grid.Column="1" Name="NewMessage" Text="New" Visibility="Hidden" />
-            </Grid>
+
+            <Border
+                Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}"
+                Height="50"
+                Padding="0,0,15,0"
+                BorderBrush="Gray"
+                BorderThickness="0 0 0 1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" Margin="3" TextTrimming="CharacterEllipsis" />
+
+                    <materialDesign:PackIcon
+                        Name="NewMessage"
+                        Grid.Column="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Kind="MessageReplyText"
+                        Opacity="0.7"
+                        SnapsToDevicePixels="True"
+                        Visibility="Hidden" />
+
+                </Grid>
+            </Border>
+
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding Unread}" Value="True">
                     <Setter TargetName="NewMessage" Property="Visibility" Value="Visible" />
                 </DataTrigger>
             </DataTemplate.Triggers>
-        </DataTemplate >
+        </DataTemplate>
 
-        <DataTemplate x:Key="MessagesDataTemplate" >
-            <WrapPanel>
-                <TextBlock Text="{Binding Message}" />
-            </WrapPanel>
+        <DataTemplate x:Key="MessagesDataTemplate">
+            <Border Name="MessageBorder" Background="#EFEBE9" HorizontalAlignment="Left" >
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding Message}" Padding="0 0 10 0" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="{Binding CreatedTime, StringFormat={}{0:t}}"/>
+                </Grid>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsOriginNative}" Value="True">
+                    <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right"/>
+                    <Setter TargetName="MessageBorder" Property="Background" Value="#BBDEFB"/>
+                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Message}" Value="{x:Null}"/>
+                        <Condition Binding="{Binding IsOriginNative}" Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.Setters>
+                        <Setter TargetName="MessageBorder" Property="Margin" Value="0,0,10,10"/>
+                        <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right"/>
+                    </MultiDataTrigger.Setters>
+                </MultiDataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
 
     </UserControl.Resources>
@@ -50,7 +97,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel>
-            
+
             <!--  Header  -->
             <TextBlock
                 HorizontalAlignment="Center"
@@ -75,10 +122,7 @@
                 </TextBlock.Style>
             </TextBlock>
 
-            <TextBlock Text="{Binding SelectedUser.Name}"
-                       HorizontalAlignment="Center">
-                
-            </TextBlock>
+            <TextBlock HorizontalAlignment="Center" Text="{Binding SelectedUser.Name}" />
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="0,10">
@@ -87,10 +131,12 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="200" MinWidth="150" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <!--  Users Form  -->
+            <!--  Users Listing  -->
+
             <Border
                 Grid.RowSpan="2"
                 Grid.Column="0"
@@ -105,58 +151,48 @@
                     SelectedItem="{Binding SelectedUser}" />
             </Border>
 
-                
-                <!--  Messages Listing  -->
+            <GridSplitter
+                Grid.Column="1"
+                Width="5"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Stretch"
+                Background="Black" />
 
+            <!--  Messages Listing  -->
 
-            <!--<ListView 
-                    Margin="0,20,0,0"
-                    BorderThickness="0"
-                    ItemsSource="{Binding SelectedMessages}"
-                    ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <WrapPanel>
-                            <TextBlock Text="{Binding Message}" />
-                        </WrapPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel VerticalAlignment="Bottom" />
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
-            </ListView>-->
-
-            <ItemsControl x:Name="MessagesItemsCtrl" Grid.Column="1" Margin="0,5,0,0" 
-                      ItemsSource="{Binding SelectedMessages}" 
-                      ItemTemplate="{DynamicResource MessagesDataTemplate}"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ItemsControl
+                x:Name="MessagesItemsCtrl"
+                Grid.Column="2"
+                Margin="0,5,0,0"
+                ItemTemplate="{DynamicResource MessagesDataTemplate}"
+                ItemsSource="{Binding SelectedMessages}"
+                ScrollViewer.VerticalScrollBarVisibility="Auto">
                 <i:Interaction.Behaviors>
-                    <utils:BringNewItemIntoViewBehavior/>
+                    <utils:BringNewItemIntoViewBehavior />
                 </i:Interaction.Behaviors>
                 <ItemsControl.Template>
                     <ControlTemplate TargetType="ItemsControl">
                         <ScrollViewer>
-                            <ItemsPresenter/>
+                            <ItemsPresenter />
                         </ScrollViewer>
                     </ControlTemplate>
                 </ItemsControl.Template>
             </ItemsControl>
 
             <!--  Send Message Form  -->
-            <Grid Grid.Column="1"
-                  Grid.Row="1">
+            <Grid
+                Grid.Row="1"
+                Grid.Column="2"
+                Visibility="{Binding Path=SendMessageVisiblity, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <TextBlock
-                        Margin="0,20,0,0"
-                        FontSize="24"
-                        Text="Send Message" />
+                    Margin="0,20,0,0"
+                    FontSize="24"
+                    Text="Send Message" />
                 <TextBox AcceptsReturn="False" Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <TextBox.InputBindings>
                         <KeyBinding Key="Return" Command="{Binding SendMessageCommand}" />
@@ -164,12 +200,12 @@
                 </TextBox>
 
                 <Button
-                        Grid.Column="1"
-                        Margin="10,0,0,0"
-                        Padding="10,3"
-                        HorizontalAlignment="Left"
-                        Command="{Binding SendMessageCommand}"
-                        Content="Send" />
+                    Grid.Column="2"
+                    Margin="10,0,0,0"
+                    Padding="10,3"
+                    HorizontalAlignment="Left"
+                    Command="{Binding SendMessageCommand}"
+                    Content="Send" />
             </Grid>
         </Grid>
     </Grid>

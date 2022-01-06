@@ -60,7 +60,6 @@ namespace PVChat.WPF.ViewModels
                 OnPropertyChanged(nameof(Name));
             }
         }
-        
 
         private UserModel _selectedUser;
 
@@ -72,6 +71,19 @@ namespace PVChat.WPF.ViewModels
                 _selectedUser = value;
                 OnPropertyChanged(nameof(SelectedUser));
                 GetMessages();
+                SetVisibility();
+            }
+        }
+
+        private bool _sendMessageVisiblity;
+
+        public bool SendMessageVisiblity
+        {
+            get { return _sendMessageVisiblity; }
+            set
+            {
+                _sendMessageVisiblity = value;
+                OnPropertyChanged(nameof(SendMessageVisiblity));
             }
         }
 
@@ -108,7 +120,14 @@ namespace PVChat.WPF.ViewModels
             _chatService.MessageDelivered += MessageDelivered;
 
             Users = new ObservableCollection<UserModel>(users);
+        }
 
+        private void SetVisibility()
+        {
+            if (SelectedUser != null)
+                SendMessageVisiblity = true;
+            else
+                SendMessageVisiblity = false;
         }
 
         private async void GetMessages()
@@ -130,13 +149,13 @@ namespace PVChat.WPF.ViewModels
         {
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                //Messages.Add($"{sender}: {model.Message}");
                 foreach (var user in Users
                 .Where(o => o.Id == message.SenderId))
                 {
-                    user.Unread = true;
+                    if(!receivedWhileChatOpen(message))
+                        user.Unread = true;
                 }
-                if(receivedWhileChatOpen(message))
+                if (receivedWhileChatOpen(message))
                 {
                     SelectedMessages.Add(message);
                 }
@@ -145,13 +164,14 @@ namespace PVChat.WPF.ViewModels
 
             await _chatService.ConfirmMessageDelivered(message);
         }
+
         private bool receivedWhileChatOpen(MessageModel message) => SelectedUser != null && SelectedUser.Id == message.SenderId;
 
         private void MessageSent(MessageModel message)
         {
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                foreach(var msg in Messages.Where(o => o.MessageId == message.MessageId))
+                foreach (var msg in Messages.Where(o => o.MessageId == message.MessageId))
                 {
                     msg.SentTime = message.SentTime;
                     msg.Status = message.Status;

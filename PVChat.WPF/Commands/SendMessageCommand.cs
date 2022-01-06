@@ -27,11 +27,13 @@ namespace PVChat.WPF.Commands
                     //MessageId = Default
                     //SenderId = Get in hub
                     ReceiverId = _viewModel.SelectedUser.Id,
+                    ReceiverName = _viewModel.SelectedUser.Name,
                     Message = _viewModel.Message,
                     //Status = default,
                     //CreatedTime = default
                     //SentTime = not yet
                     //DeliveredTime = not yet
+                    IsOriginNative = true,
                 };
                 await _chatService.SendMessage(recepient, newMessage);
                 _viewModel.SelectedMessages.Add(newMessage);

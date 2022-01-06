@@ -5,8 +5,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+
 
 namespace SignalRChat
 {
@@ -17,8 +19,10 @@ namespace SignalRChat
     [HubName("PVChatHub")]
     public class ChatHub : Hub
     {
+       
         private static ConcurrentDictionary<string, UserModel> ChatClients = new ConcurrentDictionary<string, UserModel>();
         private static ObservableCollection<MessageModel> MessageDb = new ObservableCollection<MessageModel>();
+        
 
         public List<UserModel> Login(string name)
         {
@@ -33,13 +37,38 @@ namespace SignalRChat
                 };
                 var added = ChatClients.TryAdd(name, newUser);
                 if (!added) return null;
+
+                Groups.Add(Context.ConnectionId, name);
+
                 Clients.CallerState.UserName = name;
                 Clients.CallerState.Id = Context.ConnectionId;
                 //
                 Clients.Others.ParticipantLogin(newUser);
                 return users;
             }
+            else if (ChatClients.ContainsKey(name))
+            {
+                UserModel client = new UserModel();
+                ChatClients.TryRemove(name, out client);
 
+                List<UserModel> users = new List<UserModel>(ChatClients.Values);
+                UserModel newUser = new UserModel
+                {
+                    Id = Context.ConnectionId,
+                    Name = name,
+                };
+                var added = ChatClients.TryAdd(name, newUser);
+                if (!added) return null;
+
+                Groups.Add(Context.ConnectionId, name);
+
+                Clients.CallerState.UserName = name;
+                Clients.CallerState.Id = Context.ConnectionId;
+                //
+                //Clients.Others.ParticipantLogin(newUser);
+                return users;
+            }
+                        
             return null;
         }
 
@@ -49,12 +78,14 @@ namespace SignalRChat
             if (!string.IsNullOrEmpty(name))
             {
                 UserModel client = new UserModel();
-                ChatClients.TryRemove(name, out client);
+                //ChatClients.TryRemove(name, out client);
                 //
                 Clients.Others.ParticipantLogout(client);
                 Console.WriteLine($"-- { name} logged out");
             }
         }
+
+
 
         public override Task OnDisconnected(bool stopCalled)
         {
@@ -83,13 +114,21 @@ namespace SignalRChat
 
         public List<MessageModel> GetMessages(UserModel user)
         {
-            var sender = Clients.CallerState.Id;
-            var target = user.Id;
+            var sender = Clients.CallerState.UserName;
+            var target = user.Name;
             ObservableCollection<MessageModel> messages = new ObservableCollection<MessageModel>();
             foreach (var msg in MessageDb
-                .Where(o => o.SenderId == sender || o.SenderId == target)
-                .Where(o => o.ReceiverId == target || o.ReceiverId == sender))
+                .Where(o => o.SenderName == sender || o.SenderName == target)
+                .Where(o => o.ReceiverName == target || o.ReceiverName == sender))
             {
+                if(sender == msg.SenderName)
+                {
+                    msg.IsOriginNative = true;
+                }
+                else
+                {
+                    msg.IsOriginNative = false;
+                }
                 messages.Add(msg);
             }
 
@@ -98,6 +137,7 @@ namespace SignalRChat
 
         public async Task SendMessage(string recepient, MessageModel message)
         {
+            
             var sender = Clients.CallerState.UserName;
             if (!string.IsNullOrEmpty(sender) && recepient != sender && !string.IsNullOrEmpty(message.Message) && ChatClients.ContainsKey(recepient))
             {
@@ -106,20 +146,25 @@ namespace SignalRChat
                 ChatClients.TryGetValue(recepient, out client);
 
                 message.SenderId = Clients.CallerState.Id;
+                message.SenderName = Clients.CallerState.UserName;
                 message.Status = MessageStatus.Sent;
                 message.SentTime = DateTime.Now;
+                message.IsOriginNative = false;
 
                 MessageDb.Add(message);
 
                 //
-                await Clients.Client(client.Id).MessageReceived(message);
+                
+                await Clients.Group(recepient).MessageReceived(message);
+
+                //await Clients.Client(client.Id).MessageReceived(message);
                 await Clients.Caller.MessageSent(message);
             }
         }
 
         public async Task MessageDelivered(MessageModel message)
         {
-            var sender = message.SenderId;
+            var sender = message.SenderName;
             if (!string.IsNullOrEmpty(sender))
             {
                 
@@ -130,7 +175,7 @@ namespace SignalRChat
                     Message.Status = MessageStatus.Delivered;
                 }
                 //
-                await Clients.Client(sender).MessageDelivered("Message delivered");
+                await Clients.Group(sender).MessageDelivered("Message delivered");
             }
         }
 

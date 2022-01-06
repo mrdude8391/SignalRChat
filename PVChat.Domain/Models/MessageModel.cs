@@ -11,12 +11,14 @@ namespace PVChat.Domain.Models
         public string MessageId { get; set; }
         public string SenderId { get; set; }
         public string ReceiverId { get; set; }
+        public string SenderName { get; set; }
+        public string  ReceiverName { get; set; }
         public string Message { get; set; }
         public MessageStatus Status { get; set; }
         public DateTime CreatedTime { get; set; }
         public DateTime SentTime { get; set; }
         public DateTime DeliveredTime { get; set; }
-
+        public bool IsOriginNative { get; set; }
 
 
         public MessageModel()
