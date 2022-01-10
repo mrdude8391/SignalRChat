@@ -9,20 +9,20 @@ namespace PVChat.Domain.Services
 {
     public interface ISignalRChatService
     {
-        event Action<UserModel> LoggedIn;
-        event Action<UserModel> ParticipantLogout;
+        event Action<ParticipantModel> LoggedIn;
+        event Action<ParticipantModel> ParticipantLogout;
         event Action ConnectionClosed;
         event Action<string> BroadcastReceived;
         event Action<MessageModel> MessageReceived;
         event Action<MessageModel> MessageSent;
-        event Action<string> MessageDelivered;
+        event Action<MessageModel> MessageDelivered;
 
         Task Connect();
         Task Logout();
         Task BroadcastMessage(string message);
         Task SendMessage(string recepient, MessageModel message);
         Task ConfirmMessageDelivered(MessageModel message);
-        Task<List<UserModel>> Login(string Name);
-        Task<List<MessageModel>> GetMessages(UserModel user);
+        Task<List<ParticipantModel>> Login(string Name);
+        Task<List<MessageModel>> GetMessages(ParticipantModel user);
     }
 }

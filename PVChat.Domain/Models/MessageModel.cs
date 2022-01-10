@@ -18,6 +18,7 @@ namespace PVChat.Domain.Models
         public DateTime CreatedTime { get; set; }
         public DateTime SentTime { get; set; }
         public DateTime DeliveredTime { get; set; }
+        public bool Unread { get; set; } // Read or Unread
         public bool IsOriginNative { get; set; }
 
 
@@ -26,6 +27,7 @@ namespace PVChat.Domain.Models
             MessageId = Guid.NewGuid().ToString();
             CreatedTime = DateTime.Now;
             Status = MessageStatus.Pending;
+            Unread = true;
         }
 
     }

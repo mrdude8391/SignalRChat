@@ -22,26 +22,94 @@
     <UserControl.Resources>
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-
-        <DataTemplate x:Key="UsersDataTemplate">
+        
+        <Style x:Key="ParticipantsListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" 
+                    Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+            <Setter Property="VerticalContentAlignment" 
+                    Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+            <Setter Property="Padding" Value="2,0,0,0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                        <Border x:Name="Bd"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                            <ContentPresenter Grid.Column="1"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="true">
+                                <Setter Property="Background" TargetName="Bd" Value="#E3F2FD"/>
+                                <Setter Property="Foreground" 
+                                        Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="true"/>
+                                    <Condition Property="Selector.IsSelectionActive" Value="false"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" TargetName="Bd" Value="#E3F2FD"/>
+                                <Setter Property="Foreground" 
+                                        Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
+                            </MultiTrigger>
+                            
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                            </Trigger>
+                            
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#5478e4" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <DataTemplate x:Key="ParticipantsDataTemplate">
 
             <Border
                 Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}"
                 Height="50"
                 Padding="0,0,15,0"
                 BorderBrush="Gray"
-                BorderThickness="0 0 0 1">
+                Margin="-2,0,0,0"
+                BorderThickness="0,0,0,1">
                 <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" Margin="3" TextTrimming="CharacterEllipsis" />
+                    <Rectangle x:Name="ParticipantRct" Fill="#0047AB" Visibility="Hidden" />
+
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="3"
+                        VerticalAlignment="Center"
+                        Text="{Binding Name}"
+                        TextTrimming="CharacterEllipsis" />
 
                     <materialDesign:PackIcon
                         Name="NewMessage"
-                        Grid.Column="1"
+                        Margin="5"
+                        Grid.Row="0"
+                        Grid.Column="2"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Kind="MessageReplyText"
@@ -49,6 +117,25 @@
                         SnapsToDevicePixels="True"
                         Visibility="Hidden" />
 
+                    <Ellipse
+                        Grid.Row="0"
+                        Grid.Column="3"
+                        Width="8"
+                        Height="8"
+                        Margin="5"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="#b0b5b5" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=Online}" Value="True">
+                                        <Setter Property="Fill" Value="#64dd17" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
                 </Grid>
             </Border>
 
@@ -56,33 +143,61 @@
                 <DataTrigger Binding="{Binding Unread}" Value="True">
                     <Setter TargetName="NewMessage" Property="Visibility" Value="Visible" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}" Value="true">
+                    <Setter Property="Visibility" TargetName="ParticipantRct" Value="Visible"/>
+                </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
 
         <DataTemplate x:Key="MessagesDataTemplate">
-            <Border Name="MessageBorder" Background="#EFEBE9" HorizontalAlignment="Left" >
+            <Border
+                Name="MessageBorder"
+                MinWidth="100"
+                MinHeight="40"
+                Margin="10,0,60,10"
+                HorizontalAlignment="Left"
+                Background="#EFEBE9"
+                BorderBrush="#BCAAA4"
+                BorderThickness="1"
+                CornerRadius="4"
+                SnapsToDevicePixels="True">
                 <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{Binding Message}" Padding="0 0 10 0" TextWrapping="Wrap"/>
-                    <TextBlock Grid.Column="1" Text="{Binding CreatedTime, StringFormat={}{0:t}}"/>
+                    <TextBlock
+                        Grid.RowSpan="2"
+                        Grid.Column="0"
+                        Padding="5,2,10,0"
+                        Text="{Binding Message}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        FontSize="10"
+                        Text="{Binding CreatedTime, StringFormat={}{0:t}}" />
                 </Grid>
             </Border>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsOriginNative}" Value="True">
-                    <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right"/>
-                    <Setter TargetName="MessageBorder" Property="Background" Value="#BBDEFB"/>
+                    <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right" />
+                    <Setter TargetName="MessageBorder" Property="Margin" Value="60,0,10,10"/>
+                    <Setter TargetName="MessageBorder" Property="Background" Value="#BBDEFB" />
+                    <Setter TargetName="MessageBorder" Property="BorderBrush" Value="#64B5F6"/>
                 </DataTrigger>
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding Message}" Value="{x:Null}"/>
-                        <Condition Binding="{Binding IsOriginNative}" Value="True"/>
+                        <Condition Binding="{Binding Message}" Value="{x:Null}" />
+                        <Condition Binding="{Binding IsOriginNative}" Value="True" />
                     </MultiDataTrigger.Conditions>
                     <MultiDataTrigger.Setters>
-                        <Setter TargetName="MessageBorder" Property="Margin" Value="0,0,10,10"/>
-                        <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right"/>
+                        <Setter TargetName="MessageBorder" Property="Margin" Value="0,0,10,10" />
+                        <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right" />
                     </MultiDataTrigger.Setters>
                 </MultiDataTrigger>
             </DataTemplate.Triggers>
@@ -99,11 +214,11 @@
         <StackPanel>
 
             <!--  Header  -->
-            <TextBlock
+            <!--<TextBlock
                 HorizontalAlignment="Center"
                 FontSize="32"
                 Text="Chat Room"
-                TextAlignment="Center" />
+                TextAlignment="Center" />--> 
 
             <!--  Error Message  -->
             <TextBlock
@@ -122,10 +237,10 @@
                 </TextBlock.Style>
             </TextBlock>
 
-            <TextBlock HorizontalAlignment="Center" Text="{Binding SelectedUser.Name}" />
+            <TextBlock HorizontalAlignment="Center" Text="{Binding SelectedParticipant.Name}" />
         </StackPanel>
 
-        <Grid Grid.Row="1" Margin="0,10">
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
@@ -140,15 +255,16 @@
             <Border
                 Grid.RowSpan="2"
                 Grid.Column="0"
-                Margin="10,0,0,0"
+                Margin="0,0,0,0"
                 BorderThickness="0,0,1,0"
                 SnapsToDevicePixels="True">
                 <ListBox
-                    ItemTemplate="{DynamicResource UsersDataTemplate}"
-                    ItemsSource="{Binding Users}"
+                    ItemTemplate="{DynamicResource ParticipantsDataTemplate}"
+                    ItemsSource="{Binding Participants}"
+                    ItemContainerStyle="{DynamicResource ParticipantsListBoxItemStyle}"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    SelectedItem="{Binding SelectedUser}" />
+                    SelectedItem="{Binding SelectedParticipant}" />
             </Border>
 
             <GridSplitter
@@ -156,7 +272,8 @@
                 Width="5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Stretch"
-                Background="Black" />
+                Background="White"
+                />
 
             <!--  Messages Listing  -->
 
@@ -165,7 +282,7 @@
                 Grid.Column="2"
                 Margin="0,5,0,0"
                 ItemTemplate="{DynamicResource MessagesDataTemplate}"
-                ItemsSource="{Binding SelectedMessages}"
+                ItemsSource="{Binding SelectedParticipant.Messages}"
                 ScrollViewer.VerticalScrollBarVisibility="Auto">
                 <i:Interaction.Behaviors>
                     <utils:BringNewItemIntoViewBehavior />
@@ -181,6 +298,7 @@
 
             <!--  Send Message Form  -->
             <Grid
+                Margin="0 0 0 10"
                 Grid.Row="1"
                 Grid.Column="2"
                 Visibility="{Binding Path=SendMessageVisiblity, Converter={StaticResource BooleanToVisibilityConverter}}">

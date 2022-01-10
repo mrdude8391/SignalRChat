@@ -16,13 +16,13 @@ namespace PVChat.WPF.Services
         private readonly HubConnection _connection;
         private readonly IHubProxy _proxy;
 
-        public event Action<UserModel> LoggedIn;
+        public event Action<ParticipantModel> LoggedIn;
         public event Action ConnectionClosed;
-        public event Action<UserModel> ParticipantLogout;
+        public event Action<ParticipantModel> ParticipantLogout;
         public event Action<string> BroadcastReceived;
         public event Action<MessageModel> MessageReceived;
         public event Action<MessageModel> MessageSent;
-        public event Action<string> MessageDelivered;
+        public event Action<MessageModel> MessageDelivered;
         
 
         public SignalRChatService(HubConnection connection)
@@ -31,12 +31,12 @@ namespace PVChat.WPF.Services
             //Connects to HUB has to be of hub name
             _proxy = _connection.CreateHubProxy("PVChatHub");
             //
-            _proxy.On<UserModel>("ParticipantLogin", (u) => LoggedIn?.Invoke(u));
-            _proxy.On<UserModel>("ParticipantLogout", (u) => ParticipantLogout?.Invoke(u));
+            _proxy.On<ParticipantModel>("ParticipantLogin", (u) => LoggedIn?.Invoke(u));
+            _proxy.On<ParticipantModel>("ParticipantLogout", (u) => ParticipantLogout?.Invoke(u));
             _proxy.On<string>("BroadcastReceived", (data) => BroadcastReceived?.Invoke(data));
             _proxy.On<MessageModel>("MessageReceived", (msg) => MessageReceived?.Invoke(msg));
             _proxy.On<MessageModel>("MessageSent", (msg) => MessageSent?.Invoke(msg));
-            _proxy.On<string>("MessageDelivered", (confirm) => MessageDelivered?.Invoke(confirm));
+            _proxy.On<MessageModel>("MessageDelivered", (confirm) => MessageDelivered?.Invoke(confirm));
 
             _connection.Closed += Disconnect;
         }
@@ -52,9 +52,9 @@ namespace PVChat.WPF.Services
             ConnectionClosed?.Invoke();
         }
 
-        public async Task<List<UserModel>> Login(string Name)
+        public async Task<List<ParticipantModel>> Login(string Name)
         {
-            return await _proxy.Invoke<List<UserModel>>("Login", new object[] { Name });
+            return await _proxy.Invoke<List<ParticipantModel>>("Login", new object[] { Name });
         }
         public async Task Logout()
         {
@@ -66,7 +66,7 @@ namespace PVChat.WPF.Services
             await _proxy.Invoke("BroadcastMessage", message);
         }
 
-        public async Task<List<MessageModel>> GetMessages(UserModel user)
+        public async Task<List<MessageModel>> GetMessages(ParticipantModel user)
         {
             return await _proxy.Invoke<List<MessageModel>>("GetMessages", user);
         }

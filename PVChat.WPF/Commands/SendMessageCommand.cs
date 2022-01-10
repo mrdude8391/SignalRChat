@@ -21,13 +21,13 @@ namespace PVChat.WPF.Commands
         {
             try
             {
-                var recepient = _viewModel.SelectedUser.Name;
+                var recepient = _viewModel.SelectedParticipant.Name;
                 MessageModel newMessage = new MessageModel
                 {
                     //MessageId = Default
                     //SenderId = Get in hub
-                    ReceiverId = _viewModel.SelectedUser.Id,
-                    ReceiverName = _viewModel.SelectedUser.Name,
+                    ReceiverId = _viewModel.SelectedParticipant.Id,
+                    ReceiverName = _viewModel.SelectedParticipant.Name,
                     Message = _viewModel.Message,
                     //Status = default,
                     //CreatedTime = default
@@ -35,11 +35,12 @@ namespace PVChat.WPF.Commands
                     //DeliveredTime = not yet
                     IsOriginNative = true,
                 };
-                await _chatService.SendMessage(recepient, newMessage);
-                _viewModel.SelectedMessages.Add(newMessage);
-                _viewModel.Messages.Add(newMessage);
+                //_viewModel.SelectedMessages.Add(newMessage);
+                _viewModel.SelectedParticipant.Messages.Add(newMessage);
+
                 _viewModel.ErrorMessage = string.Empty;
                 _viewModel.Message = string.Empty;
+                await _chatService.SendMessage(recepient, newMessage);
             }
             catch (Exception)
             {

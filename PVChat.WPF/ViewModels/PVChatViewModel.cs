@@ -61,15 +61,15 @@ namespace PVChat.WPF.ViewModels
             }
         }
 
-        private UserModel _selectedUser;
+        private ParticipantModel _selectedParticipant;
 
-        public UserModel SelectedUser
+        public ParticipantModel SelectedParticipant
         {
-            get { return _selectedUser; }
+            get { return _selectedParticipant; }
             set
             {
-                _selectedUser = value;
-                OnPropertyChanged(nameof(SelectedUser));
+                _selectedParticipant = value;
+                OnPropertyChanged(nameof(SelectedParticipant));
                 GetMessages();
                 SetVisibility();
             }
@@ -88,29 +88,26 @@ namespace PVChat.WPF.ViewModels
         }
 
         public bool HasErrorMessage => !string.IsNullOrEmpty(ErrorMessage);
-        public ObservableCollection<MessageModel> Messages { get; } = new ObservableCollection<MessageModel>();
-        public ObservableCollection<MessageModel> SelectedMessages { get; } = new ObservableCollection<MessageModel>();
+        //public ObservableCollection<MessageModel> SelectedMessages { get; } = new ObservableCollection<MessageModel>();
 
-        public ObservableCollection<UserModel> Users { get; }
+        public ObservableCollection<ParticipantModel> Participants { get; }
 
         public ICommand ConnectCommand { get; }
         public ICommand SendMessageCommand { get; }
         public ICommand LogoutCommand { get; }
-        public ICommand BackCommand { get; }
-
+        
         private readonly ISignalRChatService _chatService;
         private readonly NavigationService _navService;
 
-        public PVChatViewModel(ISignalRChatService chatService, NavigationService navService, List<UserModel> users)
+        public PVChatViewModel(ISignalRChatService chatService, NavigationService navService, List<ParticipantModel> users)
         {
             _chatService = chatService;
             _navService = navService;
+            _isConnected = true;
 
             SendMessageCommand = new SendMessageCommand(this, _chatService);
             ConnectCommand = new ConnectCommand(this, _chatService);
             LogoutCommand = new LogoutCommand(_chatService);
-
-            Messages = new ObservableCollection<MessageModel>();
 
             _chatService.BroadcastReceived += BroadcastMessageReceived;
             _chatService.LoggedIn += OtherUserLoggedIn;
@@ -119,71 +116,82 @@ namespace PVChat.WPF.ViewModels
             _chatService.MessageSent += MessageSent;
             _chatService.MessageDelivered += MessageDelivered;
 
-            Users = new ObservableCollection<UserModel>(users);
+            Participants = new ObservableCollection<ParticipantModel>(users);
+
+            GetMessages();
         }
 
-        private void SetVisibility()
+        private void SetVisibility() // send messages box visibility
         {
-            if (SelectedUser != null)
+            if (SelectedParticipant != null)
                 SendMessageVisiblity = true;
             else
                 SendMessageVisiblity = false;
         }
 
-        private async void GetMessages()
+        private async void GetMessages() // get messages of selected user
         {
-            if (SelectedUser != null)
+            if (SelectedParticipant != null)
             {
-                var user = Users.Where(u => u.Name == SelectedUser.Name).FirstOrDefault();
+                var user = Participants.Where(u => u.Name == SelectedParticipant.Name).FirstOrDefault();
                 user.Unread = false;
                 var msgs = await _chatService.GetMessages(user);
-                SelectedMessages.Clear();
+                SelectedParticipant.Messages.Clear();
+                //SelectedMessages.Clear();
                 foreach (var msg in msgs)
                 {
-                    SelectedMessages.Add(msg);
+                    //SelectedMessages.Add(msg);
+                    SelectedParticipant.Messages.Add(msg);
+                }
+            }
+            else if (SelectedParticipant == null)
+            {
+                foreach (var participant in Participants)
+                {
+                    if(participant.Messages.Any(o => o.Unread == true))
+                    {
+                        participant.Unread = true;
+                    }
                 }
             }
         }
 
-        private async void MessageReceived(MessageModel message)
+        private async void MessageReceived(MessageModel message) // add messages to list of messages when received from other user
         {
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                foreach (var user in Users
-                .Where(o => o.Id == message.SenderId))
+                foreach (var user in Participants
+                .Where(o => o.Name == message.SenderName))
                 {
                     if(!receivedWhileChatOpen(message))
                         user.Unread = true;
                 }
                 if (receivedWhileChatOpen(message))
                 {
-                    SelectedMessages.Add(message);
+                    //SelectedMessages.Add(message);
+                    SelectedParticipant.Messages.Add(message);
                 }
-                Messages.Add(message);
+                
             });
 
             await _chatService.ConfirmMessageDelivered(message);
         }
 
-        private bool receivedWhileChatOpen(MessageModel message) => SelectedUser != null && SelectedUser.Id == message.SenderId;
+        private bool receivedWhileChatOpen(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
 
-        private void MessageSent(MessageModel message)
+        private void MessageSent(MessageModel message) // confirmation when message was sent
         {
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                foreach (var msg in Messages.Where(o => o.MessageId == message.MessageId))
-                {
-                    msg.SentTime = message.SentTime;
-                    msg.Status = message.Status;
-                }
+                
             });
         }
 
-        private void MessageDelivered(string confirm)
+        private void MessageDelivered(MessageModel message) // confirmation when message was delivered 
         {
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                //Messages.Add($"{confirm}");
+                
             });
         }
 
@@ -198,19 +206,28 @@ namespace PVChat.WPF.ViewModels
             });
         }
 
-        private void OtherUserLoggedIn(UserModel user)
+        private void OtherUserLoggedIn(ParticipantModel user)
         {
             App.Current.Dispatcher.Invoke((Action)delegate
             {
-                Users.Add(user);
+                if (!Participants.Any(o => o.Name == user.Name))
+                    Participants.Add(user);
+                foreach (var _user in Participants.Where(o => o.Name == user.Name))
+                {
+                    _user.Online = true;
+                }
             });
         }
 
-        private void OtherUserLoggedOut(UserModel user)
+        private void OtherUserLoggedOut(ParticipantModel user)
         {
             App.Current.Dispatcher.Invoke((Action)delegate
             {
-                Users.Remove(Users.Where(o => o.Name == user.Name).FirstOrDefault());
+                foreach(var _user in Participants.Where(o => o.Name == user.Name))
+                {
+                    _user.Online = false;
+                }
+                
             });
         }
     }

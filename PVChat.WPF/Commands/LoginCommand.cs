@@ -12,7 +12,7 @@ namespace PVChat.WPF.Commands
         private readonly LoginViewModel _viewModel;
         private readonly ISignalRChatService _chatService;
         private readonly NavigationService _navService;
-        public List<UserModel> Users { get; set; } = new List<UserModel>();
+        public List<ParticipantModel> Participants { get; set; } = new List<ParticipantModel>();
 
         public LoginCommand(LoginViewModel viewModel, NavigationService navService, ISignalRChatService chatService)
         {
@@ -27,10 +27,10 @@ namespace PVChat.WPF.Commands
             try
             {
                 await _chatService.Connect();
-                Users = await _chatService.Login(_viewModel.Name);
+                Participants = await _chatService.Login(_viewModel.Name);
                 _viewModel.ErrorMessage = string.Empty;
                 //_navService.CurrentViewModel = new ContactViewModel(_chatService, _navService, Users);
-                _navService.CurrentViewModel = new PVChatViewModel(_chatService, _navService, Users);
+                _navService.CurrentViewModel = new PVChatViewModel(_chatService, _navService, Participants);
             }
             catch (Exception)
             {
