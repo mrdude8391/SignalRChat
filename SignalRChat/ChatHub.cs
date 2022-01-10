@@ -29,59 +29,63 @@ namespace SignalRChat
             if (!ChatClients.ContainsKey(name)) // new user connects to hub
             {
                 Console.WriteLine($"++ {name} logged in");
-                List<ParticipantModel> users = new List<ParticipantModel>(ChatClients.Values);
-                ParticipantModel newUser = new ParticipantModel
+                List<ParticipantModel> participants = new List<ParticipantModel>(ChatClients.Values); // get list of participants
+                ParticipantModel newParticipant = new ParticipantModel
                 {
                     Id = Context.ConnectionId,
                     Name = name,
                     Online = true,
                 };
-                var added = ChatClients.TryAdd(name, newUser);
+                var added = ChatClients.TryAdd(name, newParticipant); // add user to list of clients connected 
                 if (!added) return null;
 
                 await Groups.Add(Context.ConnectionId, name); // add id to group name. Group is same name as username
 
-                Clients.CallerState.UserName = name;
-                Clients.CallerState.Id = Context.ConnectionId;
-                
-                Clients.Others.ParticipantLogin(newUser); // update list of users for all other clients
-                return users; // return list of connected users
+                Clients.CallerState.UserName = name; // set callerstate username
+                Clients.CallerState.Id = Context.ConnectionId; // set callerstate id
+
+                foreach (var participant in participants)
+                {
+                    participant.Messages = new ObservableCollection<MessageModel>(await GetMessagesOnLogin(participant)); // populate participants with messages 
+                }
+
+                Clients.Others.ParticipantLogin(newParticipant); // update list of participants for all other clients
+                return participants; // return list of connected participants
             }
             else if (ChatClients.ContainsKey(name)) // returning user same username
             {
+                Clients.CallerState.UserName = name;
+                Clients.CallerState.Id = Context.ConnectionId;
+
                 ParticipantModel client = new ParticipantModel();
-                ChatClients.TryRemove(name, out client); // remove from chat client
+                ChatClients.TryRemove(name, out client);
 
+                await Groups.Add(Context.ConnectionId, name); // add id to group name. Group is same name as username
 
-                foreach(var user in ChatClients)
+                List<ParticipantModel> participants = new List<ParticipantModel>(ChatClients.Values); // add back with new connection id
+                
+                foreach (var participant in participants)
                 {
-                    foreach(var msg in user.Value.Messages)
-                    {
-                        await MessageDelivered(msg);
-                    }
+                    participant.Messages = new ObservableCollection<MessageModel>(await GetMessagesOnLogin(participant)); // Populate Participant List with messages
                 }
 
-                List<ParticipantModel> users = new List<ParticipantModel>(ChatClients.Values); // add back with new connection id
-                ParticipantModel newUser = new ParticipantModel
+                ParticipantModel newParticipant = new ParticipantModel
                 {
                     Id = Context.ConnectionId,
                     Name = name,
                     Online = true,
                 };
-                var added = ChatClients.TryAdd(name, newUser);
+                var added = ChatClients.TryAdd(name, newParticipant); // add user to list of clients connected 
                 if (!added) return null;
-
-                await Groups.Add(Context.ConnectionId, name); // add id to group name. Group is same name as username
-
-                Clients.CallerState.UserName = name;
-                Clients.CallerState.Id = Context.ConnectionId;
                 //
-                Clients.Others.ParticipantLogin(newUser); 
-                return users; // return list of connected users
+                Clients.Others.ParticipantLogin(newParticipant); 
+                return participants; // return list of connected users
             }
                         
             return null;
         }
+
+        
 
         public void Logout()
         {
@@ -129,14 +133,14 @@ namespace SignalRChat
             return base.OnReconnected();
         }
 
-        public List<MessageModel> GetMessages(ParticipantModel user) // Gets messages for selected user and the caller
+        public List<MessageModel> GetMessages(ParticipantModel participant) // Gets messages for selected user and the caller
         {
-            var sender = Clients.CallerState.UserName;
-            var target = user.Name;
+            var sender = participant.Name;
+            var receiver = Clients.CallerState.UserName;
             ObservableCollection<MessageModel> messages = new ObservableCollection<MessageModel>();
             foreach (var msg in MessageDb
-                .Where(o => o.SenderName == sender || o.SenderName == target)
-                .Where(o => o.ReceiverName == target || o.ReceiverName == sender))
+                .Where(o => o.SenderName == sender || o.SenderName == receiver)
+                .Where(o => o.ReceiverName == receiver || o.ReceiverName == sender))
             {
                 if(sender == msg.SenderName)
                 {
@@ -153,6 +157,29 @@ namespace SignalRChat
 
             return messages.ToList();
         }
+        public async Task<List<MessageModel>> GetMessagesOnLogin(ParticipantModel participant) // Gets messages for selected user and the caller
+        {
+            var sender = Clients.CallerState.UserName;
+            var receiver = participant.Name;
+            ObservableCollection<MessageModel> messages = new ObservableCollection<MessageModel>();
+            foreach (var msg in MessageDb
+                .Where(o => o.SenderName == sender || o.SenderName == receiver)
+                .Where(o => o.ReceiverName == receiver || o.ReceiverName == sender))
+            {
+                if (sender == msg.SenderName)
+                {
+                    msg.IsOriginNative = true;
+                }
+                else
+                {
+                    msg.IsOriginNative = false;
+                }
+                messages.Add(msg);
+                await MessageDelivered(msg);
+            }
+
+            return messages.ToList();
+        }
 
         public async Task SendMessage(string recepient, MessageModel message)
         {
@@ -161,9 +188,6 @@ namespace SignalRChat
             if (!string.IsNullOrEmpty(sender) && recepient != sender && !string.IsNullOrEmpty(message.Message) && ChatClients.ContainsKey(recepient))
             {
 
-                ParticipantModel client = new ParticipantModel();
-                ChatClients.TryGetValue(recepient, out client);
-
                 message.SenderId = Clients.CallerState.Id;
                 message.SenderName = Clients.CallerState.UserName;
                 message.Status = MessageStatus.Sent;
@@ -171,13 +195,6 @@ namespace SignalRChat
                 message.IsOriginNative = false;
 
                 MessageDb.Add(message);
-                client.Messages.Add(message);
-                ChatClients[client.Name] = client;
-
-                ParticipantModel senderClient = new ParticipantModel();
-                ChatClients.TryGetValue(sender, out senderClient);
-                senderClient.Messages.Add(message);
-                ChatClients[sender] = senderClient;
 
                 //
                 
@@ -198,9 +215,8 @@ namespace SignalRChat
                     .Where(o => o.MessageId == message.MessageId))
                 {
                     Message.DeliveredTime = DateTime.Now;
-                    message.DeliveredTime = DateTime.Now;
                     Message.Status = MessageStatus.Delivered;
-                    message.Status = MessageStatus.Delivered;
+                    message = Message;
                 }
                 
                 //
@@ -208,11 +224,6 @@ namespace SignalRChat
             }
         }
 
-        public async Task BroadcastMessage(string message)
-        {
-            //
-            await Clients.All.BroadcastReceived(message);
-            Console.WriteLine("Received Message");
-        }
+        
     }
 }
