@@ -21,7 +21,7 @@ namespace PVChat.WPF.Commands
         {
             try
             {
-                var recepient = _viewModel.SelectedParticipant.Name;
+                var recepient = _viewModel.SelectedParticipant;
                 MessageModel newMessage = new MessageModel
                 {
                     //MessageId = Default

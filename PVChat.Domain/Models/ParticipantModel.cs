@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace PVChat.Domain.Models
 {
@@ -8,7 +9,6 @@ namespace PVChat.Domain.Models
         public string Name { get; set; }
 
         private bool _online;
-
         public bool Online
         {
             get { return _online; }
@@ -16,27 +16,19 @@ namespace PVChat.Domain.Models
         }
 
         private bool _unread;
-
         public bool Unread
         {
             get { return _unread; }
-            set
-            {
-                _unread = value;
-                OnPropertyChanged(nameof(Unread));
-            }
+            set { _unread = value; OnPropertyChanged(nameof(Unread)); }
         }
-        private ObservableCollection<MessageModel> _messages;
-
-        public ObservableCollection<MessageModel> Messages
-        {
-            get { return _messages; }
-            set { _messages = value; }
-        }
+        public ObservableCollection<MessageModel> Messages { get; set; }
+        public List<string> Connections { get; set; }
+        public string DatabaseName { get; set; }
 
         public ParticipantModel()
         {
-            _messages = new ObservableCollection<MessageModel>();
+            Messages = new ObservableCollection<MessageModel>();
+            Connections = new List<string>();
         }
 
     }

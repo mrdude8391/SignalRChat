@@ -27,7 +27,8 @@ namespace PVChat.WPF.Commands
             try
             {
                 await _chatService.Connect();
-                Participants = await _chatService.Login(_viewModel.Name);
+                var db = "NS_001";
+                Participants = await _chatService.Login(_viewModel.Name, db);
                 _viewModel.ErrorMessage = string.Empty;
                 //_navService.CurrentViewModel = new ContactViewModel(_chatService, _navService, Users);
                 _navService.CurrentViewModel = new PVChatViewModel(_chatService, _navService, Participants);

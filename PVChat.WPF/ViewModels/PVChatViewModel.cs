@@ -109,7 +109,6 @@ namespace PVChat.WPF.ViewModels
             ConnectCommand = new ConnectCommand(this, _chatService);
             LogoutCommand = new LogoutCommand(_chatService);
 
-            _chatService.BroadcastReceived += BroadcastMessageReceived;
             _chatService.LoggedIn += OtherUserLoggedIn;
             _chatService.ParticipantLogout += OtherUserLoggedOut;
             _chatService.MessageReceived += MessageReceived;
@@ -183,7 +182,21 @@ namespace PVChat.WPF.ViewModels
         {
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                
+                var msg = Participants.FirstOrDefault(o => o.Name == message.ReceiverName) // get message in list of participants
+                                .Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();
+
+                if(msg != null) // update message model
+                {
+                    msg.SenderId = message.SenderId;
+                    msg.SenderName = message.SenderName;
+                    msg.SentTime = message.SentTime;
+                    msg.Status = message.Status;                    
+                }
+                else
+                {
+                    return;
+                }
+
             });
         }
 
@@ -195,16 +208,6 @@ namespace PVChat.WPF.ViewModels
             });
         }
 
-        private void BroadcastMessageReceived(string message)
-        {
-            //Might not need this LINE outside of prototype
-            //LINE exists because of Thread Affinity, the VM is created in APP.CS so the Messages <observablecollection> is created in a different thread
-            //LINE tells it which thread to add to
-            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
-            {
-                //Messages.Add(message);
-            });
-        }
 
         private void OtherUserLoggedIn(ParticipantModel user)
         {
@@ -212,10 +215,13 @@ namespace PVChat.WPF.ViewModels
             {
                 if (!Participants.Any(o => o.Name == user.Name))
                     Participants.Add(user);
-                foreach (var _user in Participants.Where(o => o.Name == user.Name))
+                else
                 {
-                    _user.Online = true;
+                    var p = Participants.FirstOrDefault(o => o.Name == user.Name);
+                    p.Connections = user.Connections;
+                    p.Online = user.Online;
                 }
+
             });
         }
 
