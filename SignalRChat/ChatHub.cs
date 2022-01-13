@@ -18,7 +18,7 @@ namespace SignalRChat
     public class ChatHub : Hub
     {
         private static ConcurrentDictionary<string, ConcurrentDictionary<string, ParticipantModel>> ChatClientsOfDb = new ConcurrentDictionary<string, ConcurrentDictionary<string, ParticipantModel>>();
-        private static ConcurrentDictionary<string, ParticipantModel> ChatClients = new ConcurrentDictionary<string, ParticipantModel>();
+        private static ConcurrentDictionary<string, ParticipantModel> ChatClients = new ConcurrentDictionary<string, ParticipantModel>(); // remove soon
         private static ObservableCollection<MessageModel> MessageDb = new ObservableCollection<MessageModel>();
 
         public ChatHub()
@@ -34,7 +34,7 @@ namespace SignalRChat
                 Console.WriteLine($"++ {name} logged in");
                 Clients.CallerState.UserName = name; // set callerstate username
                 Clients.CallerState.Id = Context.ConnectionId; // set callerstate id
-                await Groups.Add(Context.ConnectionId, name); // add id to group name. Group is same name as username
+                Clients.CallerState.Database = database; //set database
 
                 List<ParticipantModel> participants = ChatClientsOfDb[database].Values.ToList(); // get list of participants to give to user logging in
                 List<string> participantConnections = GetAllConnectionIds(participants); //get connection ids of participants
@@ -67,15 +67,12 @@ namespace SignalRChat
             {
                 Clients.CallerState.UserName = name;
                 Clients.CallerState.Id = Context.ConnectionId;
-                await Groups.Add(Context.ConnectionId, name); // add id to group name. Group is same name as username
-                ParticipantModel client = new ParticipantModel();
-                ChatClients.TryRemove(name, out client);
-
+                Clients.CallerState.Database = database; //set database
+                
                 List<ParticipantModel> participants = ChatClientsOfDb[database].Values.ToList(); // get all participants including user logging in
                 participants.Remove(participants.Where(p => p.Name == name).FirstOrDefault()); // remove user logging in from list of participants
 
                 List<string> participantConnections = GetAllConnectionIds(participants); // get all connections of participants 
-
 
                 foreach (var participant in participants) // Populate Participant List with messages
                 {
@@ -83,13 +80,13 @@ namespace SignalRChat
                 }
 
                 //Change status of user to online and add connection id 
-                ChatClientsOfDb[database][name].Online = true;
-                if (!ChatClientsOfDb[database][name].Connections.Contains(Context.ConnectionId))
+                if(ChatClientsOfDb[database][name].Online != true) //if user is offline set him to online
+                    ChatClientsOfDb[database][name].Online = true;
+                if (!ChatClientsOfDb[database][name].Connections.Contains(Context.ConnectionId)) // if the connection id already exists, prevent dupe ids
                     ChatClientsOfDb[database][name].Connections.Add(Context.ConnectionId);
 
                 //
 
-                //Clients.Others.ParticipantLogin(newParticipant);
                 Clients.Clients(participantConnections).ParticipantLogin(ChatClientsOfDb[database][name]); // ping other participants of user login
 
                 return participants; // return list of connected users
@@ -114,19 +111,26 @@ namespace SignalRChat
 
         public void Logout()
         {
-            var name = Clients.CallerState.UserName;
+            string name = Clients.CallerState.UserName;
+            string database = Clients.CallerState.Database;
+
+            List<ParticipantModel> participants = ChatClientsOfDb[database].Values.ToList();
+
+            participants.Remove(participants.Where(p => p.Name == name).FirstOrDefault());
+
+            List<string> connections = GetAllConnectionIds(participants);
+
+            ParticipantModel user = ChatClientsOfDb[database][name];
+
             if (!string.IsNullOrEmpty(name))
             {
-                ParticipantModel client = new ParticipantModel
-                {
-                    Id = Context.ConnectionId,
-                    Name = name,
-                    Online = false,
-                };
-                ChatClients[name] = client;
-                //ChatClients.TryRemove(name, out client);
+                user.Connections.Remove(Context.ConnectionId);
+                if (!user.Connections.Any())
+                    user.Online = false;
                 //
-                Clients.Others.ParticipantLogout(client);
+
+                Clients.Clients(connections).ParticipantLogout(user);
+
                 Console.WriteLine($"-- { name} logged out");
             }
         }
@@ -158,14 +162,14 @@ namespace SignalRChat
 
         public List<MessageModel> GetMessages(ParticipantModel participant) // Gets messages for selected user and the caller
         {
-            var sender = participant.Name;
-            var receiver = Clients.CallerState.UserName;
+            var selectedParticipant = participant.Name;
+            var user = Clients.CallerState.UserName;
             ObservableCollection<MessageModel> messages = new ObservableCollection<MessageModel>();
             foreach (var msg in MessageDb
-                .Where(o => o.SenderName == sender || o.SenderName == receiver)
-                .Where(o => o.ReceiverName == receiver || o.ReceiverName == sender))
+                .Where(o => o.SenderName == selectedParticipant || o.SenderName == user)
+                .Where(o => o.ReceiverName == user || o.ReceiverName == selectedParticipant))
             {
-                if (receiver == msg.ReceiverName) //if the receiver of the message is the user
+                if (user == msg.ReceiverName) //if the receiver of the message is the user
                 {
                     msg.IsOriginNative = false;
                 }
@@ -173,32 +177,34 @@ namespace SignalRChat
                 {
                     msg.IsOriginNative = true;
                 }
-                msg.Unread = false;
+                msg.Unread = false; // user read the message
                 messages.Add(msg);
             }
-
             return messages.ToList();
         }
 
-        public async Task<List<MessageModel>> GetMessagesOnLogin(ParticipantModel participant) // Gets messages for selected user and the caller
+        public async Task<List<MessageModel>> GetMessagesOnLogin(ParticipantModel participant) // Gets messages for each participant 
         {
-            var sender = participant.Name;
-            var receiver = Clients.CallerState.UserName;
+            var participantName = participant.Name;
+            var userName = Clients.CallerState.UserName;
+
             ObservableCollection<MessageModel> messages = new ObservableCollection<MessageModel>();
-            foreach (var msg in MessageDb
-                .Where(o => o.SenderName == sender || o.SenderName == receiver)
-                .Where(o => o.ReceiverName == receiver || o.ReceiverName == sender))
+            foreach (var msg in MessageDb      
+                .Where(o => o.SenderName == participantName || o.SenderName == userName)
+                .Where(o => o.ReceiverName == userName || o.ReceiverName == participantName)) // gets all messages that the user sent to and received from participant
             {
-                if (receiver == msg.ReceiverName) //if person logging in is the receiver of the message
+                if (userName == msg.ReceiverName) //if user is the receiver of the message or which side of the ui to display message
                 {
-                    msg.IsOriginNative = false; // person loggin in is not the author
+                    msg.IsOriginNative = false; // user is not the author
                 }
                 else
                 {
-                    msg.IsOriginNative = true;
+                    msg.IsOriginNative = true; //user is author
                 }
-                messages.Add(msg);
-                await MessageDelivered(msg);
+                messages.Add(msg); // add to list of messages
+
+                if(msg.Status != MessageStatus.Delivered) // if message wasnt delivered
+                    await MessageDelivered(participant, msg); // tell the participant that the message was delivered to the user
             }
 
             return messages.ToList();
@@ -222,17 +228,16 @@ namespace SignalRChat
 
                 //
 
-                //await Clients.Group(recepient.Name).MessageReceived(message); // Send message to the connection Ids under the groupname
-
                 await Clients.Clients(recepient.Connections).MessageReceived(message); // send message to all connections associated with recepient
-                await Clients.Clients(senderConnections).MessageSent(message);
+                await Clients.Clients(senderConnections).MessageSent(message); // sync with sender that the message was sent to the database
             }
         }
 
-        public async Task MessageDelivered(MessageModel message)
+        public async Task MessageDelivered(ParticipantModel sender, MessageModel message)
         {
-            var sender = message.SenderName;
-            if (!string.IsNullOrEmpty(sender))
+            List<string> senderConnections = ChatClientsOfDb[sender.DatabaseName][sender.Name].Connections;
+
+            if (!string.IsNullOrEmpty(sender.Name))
             {
                 foreach (var Message in MessageDb
                     .Where(o => o.MessageId == message.MessageId))
@@ -243,7 +248,10 @@ namespace SignalRChat
                 }
 
                 //
-                await Clients.Group(sender).MessageDelivered(message);
+                //await Clients.Group(sender).MessageDelivered(message);
+
+                await Clients.Clients(senderConnections).MessageDelivered(message); // synchronize with sender that the message was delivered to recepient
+
             }
         }
     }

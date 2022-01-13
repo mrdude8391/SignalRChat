@@ -34,7 +34,7 @@ namespace PVChat.WPF.Services
             _proxy.On<ParticipantModel>("ParticipantLogout", (u) => ParticipantLogout?.Invoke(u));
             _proxy.On<MessageModel>("MessageReceived", (msg) => MessageReceived?.Invoke(msg));
             _proxy.On<MessageModel>("MessageSent", (msg) => MessageSent?.Invoke(msg));
-            _proxy.On<MessageModel>("MessageDelivered", (confirm) => MessageDelivered?.Invoke(confirm));
+            _proxy.On<MessageModel>("MessageDelivered", (msg) => MessageDelivered?.Invoke(msg));
 
             _connection.Closed += Disconnect;
         }
@@ -69,9 +69,9 @@ namespace PVChat.WPF.Services
             await _proxy.Invoke("SendMessage", new object[] { recepient, message });
         }
 
-        public async Task ConfirmMessageDelivered(MessageModel message)
+        public async Task ConfirmMessageDelivered(ParticipantModel sender, MessageModel message)
         {
-            await _proxy.Invoke("MessageDelivered", message);
+            await _proxy.Invoke("MessageDelivered", new object[] { sender, message });
         }
     }
 }

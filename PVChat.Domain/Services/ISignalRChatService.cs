@@ -19,7 +19,7 @@ namespace PVChat.Domain.Services
         Task Connect();
         Task Logout();
         Task SendMessage(ParticipantModel recepient, MessageModel message);
-        Task ConfirmMessageDelivered(MessageModel message);
+        Task ConfirmMessageDelivered(ParticipantModel sender, MessageModel message);
         Task<List<ParticipantModel>> Login(string Name, string Database);
         Task<List<MessageModel>> GetMessages(ParticipantModel user);
     }

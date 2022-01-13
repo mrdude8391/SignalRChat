@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace PVChat.Domain.Models
 {
     public class ParticipantModel : ModelBase
     {
-        public string Id { get; set; }
+        public string Id { get; set; } //remove
         public string Name { get; set; }
 
         private bool _online;
@@ -22,6 +24,7 @@ namespace PVChat.Domain.Models
             set { _unread = value; OnPropertyChanged(nameof(Unread)); }
         }
         public ObservableCollection<MessageModel> Messages { get; set; }
+
         public List<string> Connections { get; set; }
         public string DatabaseName { get; set; }
 
@@ -31,5 +34,6 @@ namespace PVChat.Domain.Models
             Connections = new List<string>();
         }
 
+        
     }
 }

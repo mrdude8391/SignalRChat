@@ -95,7 +95,7 @@ namespace PVChat.WPF.ViewModels
         public ICommand ConnectCommand { get; }
         public ICommand SendMessageCommand { get; }
         public ICommand LogoutCommand { get; }
-        
+
         private readonly ISignalRChatService _chatService;
         private readonly NavigationService _navService;
 
@@ -147,7 +147,7 @@ namespace PVChat.WPF.ViewModels
             {
                 foreach (var participant in Participants)
                 {
-                    if(participant.Messages.Any(o => o.Unread == true))
+                    if (participant.Messages.Any(o => o.Unread == true))
                     {
                         participant.Unread = true;
                     }
@@ -157,23 +157,22 @@ namespace PVChat.WPF.ViewModels
 
         private async void MessageReceived(MessageModel message) // add messages to list of messages when received from other user
         {
+            ParticipantModel participant = Participants.FirstOrDefault(o => o.Name == message.SenderName);
+
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                foreach (var user in Participants
-                .Where(o => o.Name == message.SenderName))
-                {
-                    if(!receivedWhileChatOpen(message))
-                        user.Unread = true;
-                }
+                if (!receivedWhileChatOpen(message))
+                    participant.Unread = true;
+
                 if (receivedWhileChatOpen(message))
                 {
                     //SelectedMessages.Add(message);
+                    message.Unread = false;
                     SelectedParticipant.Messages.Add(message);
                 }
-                
             });
 
-            await _chatService.ConfirmMessageDelivered(message);
+            await _chatService.ConfirmMessageDelivered(participant, message);
         }
 
         private bool receivedWhileChatOpen(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
@@ -182,32 +181,44 @@ namespace PVChat.WPF.ViewModels
         {
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                var msg = Participants.FirstOrDefault(o => o.Name == message.ReceiverName) // get message in list of participants
-                                .Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();
+                var participant = Participants.FirstOrDefault(o => o.Name == message.ReceiverName);
+                var msg = participant.Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();// get message in list of participants
 
-                if(msg != null) // update message model
+                if (msg != null) // update message model
                 {
                     msg.SenderId = message.SenderId;
                     msg.SenderName = message.SenderName;
                     msg.SentTime = message.SentTime;
-                    msg.Status = message.Status;                    
+                    msg.Status = message.Status;
                 }
                 else
                 {
-                    return;
+                    message.IsOriginNative = true;
+                    participant.Messages.Add(message);
+                }
+            });
+        }
+
+        private void MessageDelivered(MessageModel message) // confirmation when message was delivered
+        {
+            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
+            {
+                var participant = Participants.FirstOrDefault(o => o.Name == message.ReceiverName);
+                var msg = participant.Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();// get message in list of participants
+
+                if (msg != null) // update message model
+                {
+                    msg.DeliveredTime = message.DeliveredTime;
+                    msg.Status = message.Status;
+                }
+                else
+                {
+                    message.IsOriginNative = true;
+                    participant.Messages.Add(message);
                 }
 
             });
         }
-
-        private void MessageDelivered(MessageModel message) // confirmation when message was delivered 
-        {
-            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
-            {
-                
-            });
-        }
-
 
         private void OtherUserLoggedIn(ParticipantModel user)
         {
@@ -221,7 +232,6 @@ namespace PVChat.WPF.ViewModels
                     p.Connections = user.Connections;
                     p.Online = user.Online;
                 }
-
             });
         }
 
@@ -229,11 +239,12 @@ namespace PVChat.WPF.ViewModels
         {
             App.Current.Dispatcher.Invoke((Action)delegate
             {
-                foreach(var _user in Participants.Where(o => o.Name == user.Name))
+                var p = Participants.FirstOrDefault(o => o.Name == user.Name);
+                if (p != null)
                 {
-                    _user.Online = false;
+                    p.Connections = user.Connections;
+                    p.Online = user.Online;
                 }
-                
             });
         }
     }
