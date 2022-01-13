@@ -22,7 +22,10 @@ namespace PVChat.WPF.Services
         public event Action<MessageModel> MessageReceived;
         public event Action<MessageModel> MessageSent;
         public event Action<MessageModel> MessageDelivered;
-        
+        public event Action<MessageModel> MessageDeliveredForReceivers;
+        public event Action<ParticipantModel> ParticipantsMessageRead;
+
+
 
         public SignalRChatService(HubConnection connection)
         {
@@ -35,6 +38,8 @@ namespace PVChat.WPF.Services
             _proxy.On<MessageModel>("MessageReceived", (msg) => MessageReceived?.Invoke(msg));
             _proxy.On<MessageModel>("MessageSent", (msg) => MessageSent?.Invoke(msg));
             _proxy.On<MessageModel>("MessageDelivered", (msg) => MessageDelivered?.Invoke(msg));
+            _proxy.On<MessageModel>("MessageDeliveredForReceivers", (msg) => MessageDeliveredForReceivers?.Invoke(msg));
+            _proxy.On<ParticipantModel>("ParticipantsMessageRead", (u) => ParticipantsMessageRead?.Invoke(u));
 
             _connection.Closed += Disconnect;
         }
@@ -71,7 +76,9 @@ namespace PVChat.WPF.Services
 
         public async Task ConfirmMessageDelivered(ParticipantModel sender, MessageModel message)
         {
-            await _proxy.Invoke("MessageDelivered", new object[] { sender, message });
+            await _proxy.Invoke("ConfirmMessageDelivered", new object[] { sender, message });
         }
+
+        
     }
 }

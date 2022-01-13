@@ -114,11 +114,15 @@ namespace PVChat.WPF.ViewModels
             _chatService.MessageReceived += MessageReceived;
             _chatService.MessageSent += MessageSent;
             _chatService.MessageDelivered += MessageDelivered;
+            _chatService.MessageDeliveredForReceivers += MessageDeliveredForReceivers;
+            _chatService.ParticipantsMessageRead += ParticipantsMessageRead;
 
             Participants = new ObservableCollection<ParticipantModel>(users);
 
             GetMessages();
         }
+
+        
 
         private void SetVisibility() // send messages box visibility
         {
@@ -161,21 +165,24 @@ namespace PVChat.WPF.ViewModels
 
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
-                if (!receivedWhileChatOpen(message))
-                    participant.Unread = true;
+                message.DeliveredTime = DateTime.Now;
+                message.Status = MessageStatus.Delivered;
 
-                if (receivedWhileChatOpen(message))
+                if (ReceivedWhileChatOpen(message))
                 {
-                    //SelectedMessages.Add(message);
                     message.Unread = false;
                     SelectedParticipant.Messages.Add(message);
+                }
+                else
+                {
+                    participant.Unread = true;
                 }
             });
 
             await _chatService.ConfirmMessageDelivered(participant, message);
         }
 
-        private bool receivedWhileChatOpen(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
+        private bool ReceivedWhileChatOpen(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
 
         private void MessageSent(MessageModel message) // confirmation when message was sent
         {
@@ -191,13 +198,56 @@ namespace PVChat.WPF.ViewModels
                     msg.SentTime = message.SentTime;
                     msg.Status = message.Status;
                 }
-                else
+                else // message was sent from user on another device 
                 {
                     message.IsOriginNative = true;
+                    message.Unread = false;
                     participant.Messages.Add(message);
                 }
             });
         }
+
+        private void ParticipantsMessageRead(ParticipantModel user)
+        {
+            App.Current.Dispatcher.Invoke((Action)delegate
+            {
+                var participant = Participants.FirstOrDefault(o => o.Name == user.Name);
+                participant.Unread = false;
+
+                foreach(var msg in participant.Messages)
+                {
+                    msg.Unread = false;
+                }
+
+            });
+        }
+
+        private void MessageDeliveredForReceivers(MessageModel message)
+        {
+            App.Current.Dispatcher.Invoke((Action)delegate
+            {
+                var participant = Participants.FirstOrDefault(o => o.Name == message.SenderName);
+                var msg = participant.Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();
+
+                if (msg != null) // update message model
+                {
+                    msg.DeliveredTime = message.DeliveredTime;
+                    msg.Status = message.Status;
+                    msg.Unread = message.Unread;
+                    if(msg.Unread == false)
+                    {
+                        participant.Unread = false;
+                    }
+                }
+                else // message was sent from another device. Adds message incase this client doesn't have it already but it should've been added during "MessageSent" verification
+                {
+                    message.IsOriginNative = true;
+                    participant.Messages.Add(message);
+                }
+
+            });
+        }
+
 
         private void MessageDelivered(MessageModel message) // confirmation when message was delivered
         {
@@ -210,8 +260,9 @@ namespace PVChat.WPF.ViewModels
                 {
                     msg.DeliveredTime = message.DeliveredTime;
                     msg.Status = message.Status;
+                    msg.Unread = message.Unread;
                 }
-                else
+                else // message was sent from another device. Adds message incase this client doesn't have it already but it should've been added during "MessageSent" verification
                 {
                     message.IsOriginNative = true;
                     participant.Messages.Add(message);
