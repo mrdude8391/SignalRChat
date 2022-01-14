@@ -15,6 +15,8 @@ namespace PVChat.Domain.Services
         event Action<MessageModel> MessageReceived;
         event Action<MessageModel> MessageSent;
         event Action<MessageModel> MessageDelivered;
+        event Action<MessageModel> MessageDeliveredForReceivers;
+        event Action<ParticipantModel> ParticipantsMessageRead;
 
         Task Connect();
         Task Logout();
@@ -22,5 +24,6 @@ namespace PVChat.Domain.Services
         Task ConfirmMessageDelivered(ParticipantModel sender, MessageModel message);
         Task<List<ParticipantModel>> Login(string Name, string Database);
         Task<List<MessageModel>> GetMessages(ParticipantModel user);
+       
     }
 }

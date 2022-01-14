@@ -22,14 +22,18 @@ namespace SignalRChat
         private static ConcurrentDictionary<string, ParticipantModel> ChatClients = new ConcurrentDictionary<string, ParticipantModel>(); // remove soon
         private static ObservableCollection<MessageModel> MessageDb = new ObservableCollection<MessageModel>();
 
-        public ChatHub()
-        {
-            var db = "NS_001";
-            ChatClientsOfDb.TryAdd(db, new ConcurrentDictionary<string, ParticipantModel>());
-        }
+        
 
         public async Task<List<ParticipantModel>> Login(string name, string database)
         {
+
+            if (!ChatClientsOfDb.ContainsKey(database))
+            {
+                var added = ChatClientsOfDb.TryAdd(database, new ConcurrentDictionary<string, ParticipantModel>());
+                if (!added)
+                    return null; 
+            }
+
             if (!ChatClientsOfDb[database].ContainsKey(name)) // if new user in new database
             {
                 Console.WriteLine($"++ {name} logged in");
@@ -165,6 +169,9 @@ namespace SignalRChat
         {
             var selectedParticipant = participant.Name;
             var user = Clients.CallerState.UserName;
+
+            List<string> userConnections = ChatClientsOfDb[participant.DatabaseName][user].Connections;
+
             ObservableCollection<MessageModel> messages = new ObservableCollection<MessageModel>();
             foreach (var msg in MessageDb
                 .Where(o => o.SenderName == selectedParticipant || o.SenderName == user)
@@ -181,6 +188,8 @@ namespace SignalRChat
                 msg.Unread = false; // user read the message
                 messages.Add(msg);
             }
+
+            Clients.Clients(userConnections).ParticipantsMessageRead(participant);
             return messages.ToList();
         }
 
@@ -197,15 +206,17 @@ namespace SignalRChat
                 if (userName == msg.ReceiverName) //if user is the receiver of the message or which side of the ui to display message
                 {
                     msg.IsOriginNative = false; // user is not the author
+                    
                 }
                 else
                 {
                     msg.IsOriginNative = true; //user is author
+                    msg.Unread = false;
                 }
                 messages.Add(msg); // add to list of messages
 
                 if(msg.Status != MessageStatus.Delivered) // if message wasnt delivered
-                    await MessageDelivered(participant, msg); // tell the participant that the message was delivered to the user
+                    await ConfirmMessageDelivered(participant, msg); // tell the participant that the message was delivered to the user
             }
 
             return messages.ToList();
@@ -234,23 +245,28 @@ namespace SignalRChat
             }
         }
 
-        public async Task MessageDelivered(ParticipantModel sender, MessageModel message)
+        public async Task ConfirmMessageDelivered(ParticipantModel sender, MessageModel message)
         {
             List<string> senderConnections = ChatClientsOfDb[sender.DatabaseName][sender.Name].Connections;
+
+            List<string> receiverConnections = ChatClientsOfDb[sender.DatabaseName][message.ReceiverName].Connections;
 
             if (!string.IsNullOrEmpty(sender.Name))
             {
                 foreach (var Message in MessageDb
                     .Where(o => o.MessageId == message.MessageId))
                 {
-                    Message.DeliveredTime = DateTime.Now;
-                    Message.Status = MessageStatus.Delivered;
-                    message = Message;
+                    Message.DeliveredTime = message.DeliveredTime;
+                    Message.Status = message.Status;
+                    if (message.Unread == false)
+                        Message.Unread = false;
+
+                    message.Unread = Message.Unread; // sync message going back with message in database
                 }
 
                 //
                 //await Clients.Group(sender).MessageDelivered(message);
-
+                await Clients.Clients(receiverConnections).MessageDeliveredForReceivers(message); // syncs with all other receivers that message was delivered to at least one other user
                 await Clients.Clients(senderConnections).MessageDelivered(message); // synchronize with sender that the message was delivered to recepient
 
             }

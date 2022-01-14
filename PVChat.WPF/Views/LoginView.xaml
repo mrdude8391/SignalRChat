@@ -34,6 +34,10 @@
             </TextBlock.Style>
         </TextBlock>
         <StackPanel Margin="5,10,5,0">
+            <TextBlock Margin="0,0,5,0" Text="Database:" />
+
+            <TextBox AcceptsReturn="False" Text="{Binding DatabaseName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" /> 
+
             <TextBlock Margin="0,0,5,0" Text="Name:" />
 
             <emoji:RichTextBox AcceptsReturn="False" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">

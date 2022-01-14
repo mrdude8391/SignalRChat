@@ -1,9 +1,6 @@
-﻿using PVChat.Domain.Models;
-using PVChat.WPF.Commands;
+﻿using PVChat.WPF.Commands;
 using PVChat.WPF.Services;
-using System;
 using System.Windows.Input;
-
 
 namespace PVChat.WPF.ViewModels
 {
@@ -23,6 +20,14 @@ namespace PVChat.WPF.ViewModels
             }
         }
 
+        private string _databaseName;
+
+        public string DatabaseName
+        {
+            get { return _databaseName; }
+            set { _databaseName = value; OnPropertyChanged(nameof(DatabaseName)); }
+        }
+
         private string _errorMessage;
 
         public string ErrorMessage
@@ -34,23 +39,22 @@ namespace PVChat.WPF.ViewModels
                 OnPropertyChanged(nameof(ErrorMessage));
             }
         }
+
         private bool _isConnected = false;
 
         public bool IsConnected
         {
             get { return _isConnected; }
             set { _isConnected = value; }
-        } 
-
+        }
 
         public ICommand LoginCommand { get; } // COMMANDS NEED TO BE PUBLIC
+
         public LoginViewModel(NavigationService navService, SignalRChatService chatService)
         {
             _navService = navService;
             _chatService = chatService;
             LoginCommand = new LoginCommand(this, _navService, _chatService);
         }
-
-        
     }
 }
