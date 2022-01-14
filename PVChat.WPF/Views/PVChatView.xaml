@@ -110,7 +110,7 @@
                                 <Binding Path="DatabaseName" />
                             </MultiBinding>
                         </TextBlock.Text>
-                    </TextBlock>
+                    </emoji:TextBlock>
 
                     <materialDesign:PackIcon
                         Name="NewMessage"
