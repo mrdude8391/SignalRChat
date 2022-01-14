@@ -188,7 +188,7 @@ namespace SignalRChat
                 messages.Add(msg);
             }
 
-            Clients.Clients(userConnections).ParticipantsMessageRead(participant);
+            Clients.Clients(userConnections).UpdateMessagesReadStatus(participant);
             return messages.ToList();
         }
 
@@ -244,7 +244,7 @@ namespace SignalRChat
             }
         }
 
-        public async Task ConfirmMessageDelivered(ParticipantModel sender, MessageModel message)
+        public async Task ConfirmMessageDelivered(ParticipantModel sender, MessageModel message) //confirms with sender and receiever that the message was delivered
         {
             List<string> senderConnections = ChatClientsOfDb[sender.DatabaseName][sender.Name].Connections;
 

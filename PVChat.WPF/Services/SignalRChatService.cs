@@ -23,7 +23,7 @@ namespace PVChat.WPF.Services
         public event Action<MessageModel> MessageSent;
         public event Action<MessageModel> MessageDelivered;
         public event Action<MessageModel> MessageDeliveredForReceivers;
-        public event Action<ParticipantModel> ParticipantsMessageRead;
+        public event Action<ParticipantModel> UpdateMessagesReadStatus;
 
 
 
@@ -39,7 +39,7 @@ namespace PVChat.WPF.Services
             _proxy.On<MessageModel>("MessageSent", (msg) => MessageSent?.Invoke(msg));
             _proxy.On<MessageModel>("MessageDelivered", (msg) => MessageDelivered?.Invoke(msg));
             _proxy.On<MessageModel>("MessageDeliveredForReceivers", (msg) => MessageDeliveredForReceivers?.Invoke(msg));
-            _proxy.On<ParticipantModel>("ParticipantsMessageRead", (u) => ParticipantsMessageRead?.Invoke(u));
+            _proxy.On<ParticipantModel>("UpdateMessagesReadStatus", (u) => UpdateMessagesReadStatus?.Invoke(u));
 
             _connection.Closed += Disconnect;
         }

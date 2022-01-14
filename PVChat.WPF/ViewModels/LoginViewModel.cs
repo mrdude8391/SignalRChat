@@ -55,6 +55,8 @@ namespace PVChat.WPF.ViewModels
             _navService = navService;
             _chatService = chatService;
             LoginCommand = new LoginCommand(this, _navService, _chatService);
+
+            DatabaseName = "NS_1";
         }
     }
 }

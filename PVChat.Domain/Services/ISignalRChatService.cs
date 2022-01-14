@@ -16,7 +16,7 @@ namespace PVChat.Domain.Services
         event Action<MessageModel> MessageSent;
         event Action<MessageModel> MessageDelivered;
         event Action<MessageModel> MessageDeliveredForReceivers;
-        event Action<ParticipantModel> ParticipantsMessageRead;
+        event Action<ParticipantModel> UpdateMessagesReadStatus;
 
         Task Connect();
         Task Logout();

@@ -115,7 +115,7 @@ namespace PVChat.WPF.ViewModels
             _chatService.MessageSent += MessageSent;
             _chatService.MessageDelivered += MessageDelivered;
             _chatService.MessageDeliveredForReceivers += MessageDeliveredForReceivers;
-            _chatService.ParticipantsMessageRead += ParticipantsMessageRead;
+            _chatService.UpdateMessagesReadStatus += UpdateMessagesReadStatus;
 
             Participants = new ObservableCollection<ParticipantModel>(users);
 
@@ -179,7 +179,7 @@ namespace PVChat.WPF.ViewModels
                 }
             });
 
-            await _chatService.ConfirmMessageDelivered(participant, message);
+            await _chatService.ConfirmMessageDelivered(participant, message); // tells the sender that message was delivered
         }
 
         private bool ReceivedWhileChatOpen(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
@@ -207,7 +207,7 @@ namespace PVChat.WPF.ViewModels
             });
         }
 
-        private void ParticipantsMessageRead(ParticipantModel user)
+        private void UpdateMessagesReadStatus(ParticipantModel user)
         {
             App.Current.Dispatcher.Invoke((Action)delegate
             {
@@ -222,7 +222,7 @@ namespace PVChat.WPF.ViewModels
             });
         }
 
-        private void MessageDeliveredForReceivers(MessageModel message)
+        private void MessageDeliveredForReceivers(MessageModel message) // syncs message to hub when the message is delivered
         {
             App.Current.Dispatcher.Invoke((Action)delegate
             {
@@ -234,7 +234,7 @@ namespace PVChat.WPF.ViewModels
                     msg.DeliveredTime = message.DeliveredTime;
                     msg.Status = message.Status;
                     msg.Unread = message.Unread;
-                    if(msg.Unread == false)
+                    if(msg.Unread == false) // updates read status if message is read in another client instance
                     {
                         participant.Unread = false;
                     }
