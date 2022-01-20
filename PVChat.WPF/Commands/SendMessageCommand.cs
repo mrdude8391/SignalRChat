@@ -21,31 +21,37 @@ namespace PVChat.WPF.Commands
         {
             try
             {
-                var recepient = _viewModel.SelectedParticipant;
-                MessageModel newMessage = new MessageModel
+                if(!string.IsNullOrWhiteSpace(_viewModel.Message))
                 {
-                    //MessageId = Default
-                    //SenderId = Get in hub
-                    ReceiverId = _viewModel.SelectedParticipant.Id,
-                    ReceiverName = _viewModel.SelectedParticipant.Name,
-                    Message = _viewModel.Message,
-                    //Status = default,
-                    //CreatedTime = default
-                    //SentTime = not yet
-                    //DeliveredTime = not yet
-                    IsOriginNative = true,
-                };
-                //_viewModel.SelectedMessages.Add(newMessage);
-                _viewModel.SelectedParticipant.Messages.Add(newMessage);
+                    var recepient = _viewModel.SelectedParticipant;
+                    MessageModel newMessage = new MessageModel
+                    {
+                        //MessageId = Default
+                        //SenderId = Get in hub
+                        ReceiverId = _viewModel.SelectedParticipant.Id,
+                        ReceiverName = _viewModel.SelectedParticipant.Name,
+                        Message = _viewModel.Message,
+                        //Status = default,
+                        //CreatedTime = default
+                        //SentTime = not yet
+                        //DeliveredTime = not yet
+                        IsOriginNative = true,
+                    };
+                    //_viewModel.SelectedMessages.Add(newMessage);
+                    _viewModel.SelectedParticipant.Messages.Add(newMessage);
 
-                _viewModel.ErrorMessage = string.Empty;
-                _viewModel.Message = string.Empty;
-                await _chatService.SendMessage(recepient, newMessage);
+                    _viewModel.ErrorMessage = string.Empty;
+                    _viewModel.Message = string.Empty;
+                    await _chatService.SendMessage(recepient, newMessage);
+                }
+                
             }
             catch (Exception)
             {
                 _viewModel.ErrorMessage = "Unable to send message.";
             }
         }
+
+
     }
 }

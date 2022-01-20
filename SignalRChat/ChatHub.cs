@@ -170,7 +170,8 @@ namespace SignalRChat
             var selectedParticipant = participant.Name;
             var user = Clients.CallerState.UserName;
 
-            List<string> userConnections = ChatClientsOfDb[participant.DatabaseName][user].Connections;
+            List<string> participantConnections = ChatClientsOfDb[participant.DatabaseName][selectedParticipant].Connections;
+            ParticipantModel userModel = ChatClientsOfDb[participant.DatabaseName][user];
 
             ObservableCollection<MessageModel> messages = new ObservableCollection<MessageModel>();
             foreach (var msg in MessageDb
@@ -189,7 +190,7 @@ namespace SignalRChat
                 messages.Add(msg);
             }
 
-            Clients.Clients(userConnections).UpdateMessagesReadStatus(participant);
+            Clients.Clients(participantConnections).UpdateMessagesReadStatus(userModel);
             return messages.ToList();
         }
 

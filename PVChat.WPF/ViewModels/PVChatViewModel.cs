@@ -99,11 +99,12 @@ namespace PVChat.WPF.ViewModels
         private readonly ISignalRChatService _chatService;
         private readonly NavigationService _navService;
 
-        public PVChatViewModel(ISignalRChatService chatService, NavigationService navService, List<ParticipantModel> users)
+        public PVChatViewModel(ISignalRChatService chatService, NavigationService navService, List<ParticipantModel> users, string name)
         {
             _chatService = chatService;
             _navService = navService;
             _isConnected = true;
+            _name = name;
 
             SendMessageCommand = new SendMessageCommand(this, _chatService);
             ConnectCommand = new ConnectCommand(this, _chatService);
