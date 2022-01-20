@@ -23,7 +23,8 @@
 
     <UserControl.Resources>
         <FontFamily x:Key="Font" >/Fonts/#Segoe UI Emoji</FontFamily>
-        
+        <materialDesign:PackIcon x:Key="SendIcon" Kind="Send" />
+
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         
@@ -186,9 +187,9 @@
                     
                     <emoji:TextBlock
                         x:Name="MessageBox"
-                        Grid.RowSpan="2"
-                        Grid.Column="0"
-                        Padding="5,2,10,0"
+                        Grid.Row="0"
+                        Grid.ColumnSpan="3"
+                        Padding="5,2,5,0"
                         helpers:TextBlockHyperLinkHelper.Text="{Binding Message}"
                         TextWrapping="Wrap" />
 
@@ -197,27 +198,30 @@
                     <materialDesign:PackIcon 
                         Name="Read"
                         Grid.Row="1"
-                        Grid.Column="1"
+                        Grid.Column="2"
+                        Margin="2"
                         Kind="Read"
                         Visibility="Hidden"
                         />
                     <materialDesign:PackIcon
                         Name="Sent"
                         Grid.Row="1"
-                        Grid.Column="1"
+                        Grid.Column="2"
+                        Margin="2"
                         Kind="Check"
                         Visibility="Hidden"
                         />
                     <materialDesign:PackIcon
                         Name="Delivered"
                         Grid.Row="1"
-                        Grid.Column="1"
+                        Grid.Column="2"
+                        Margin="2"
                         Kind="CheckAll"
                         Visibility="Hidden"
                         />
                     <TextBlock
                         Grid.Row="1"
-                        Grid.Column="2"
+                        Grid.Column="1"
                         FontSize="10"
                         Text="{Binding CreatedTime, StringFormat={}{0:t}}" />
                 </Grid>
@@ -251,61 +255,61 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel>
 
-            <!--  Header  -->
-            <!--<TextBlock
-                HorizontalAlignment="Center"
-                FontSize="32"
-                Text="Chat Room"
-                TextAlignment="Center" />--> 
+        
+            
 
-            <!--  Error Message  -->
-            <TextBlock
-                Margin="0,20,0,0"
-                HorizontalAlignment="Center"
-                Foreground="DarkRed"
-                Text="{Binding ErrorMessage}">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasErrorMessage}" Value="False">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
+        
 
-            <TextBlock HorizontalAlignment="Center" Text="{Binding SelectedParticipant.Name}" />
-        </StackPanel>
+
 
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
+                <RowDefinition Height="100" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200" MinWidth="150" />
-                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <!--  Users Listing  -->
-
+            <!--  Header -->
+            <Border 
+            Grid.Row="0"
+            Grid.Column="0"
+            >
+                
+                <Image Source="/Images/logo-placeholder.png" Stretch="Uniform" />
+            </Border>
+                <!--participant name-->
             <Border
+                Background="#b3b3b3"
                 Grid.Row="0"
+                Grid.Column="1"
+                Padding="20,0,0,0">
+
+                <TextBlock 
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                FontSize="24"
+                Text="{Binding SelectedParticipant.Name}" >
+                </TextBlock>
+            </Border>
+
+
+            <!--  Participants Listing  -->
+            <Border
+                Grid.Row="1"
                 Grid.Column="0"
                 Margin="0,0,0,0"
-                BorderThickness="0,1,1,1"
-                BorderBrush="Gray"
+                BorderThickness="0"
                 SnapsToDevicePixels="True">
                 <ListBox
                     BorderThickness="0"
-                    Background="GhostWhite"
+                    Background="#e6e6e6"
                     ItemTemplate="{DynamicResource ParticipantsDataTemplate}"
                     ItemsSource="{Binding Participants}"
                     ItemContainerStyle="{DynamicResource ParticipantsListBoxItemStyle}"
@@ -314,32 +318,26 @@
                     SelectedItem="{Binding SelectedParticipant}" />
             </Border>
 
+            <!--User Name-->
             <Border
-                Grid.Row="1"
+                Grid.Row="2"
                 Grid.Column="0"
                 Padding="20"
-                Background="GhostWhite"
+                Background="#cccccc"
                 Margin="0,0,0,0"
-                BorderThickness="0,0,1,0"
+                BorderThickness="0"
                 SnapsToDevicePixels="True"
-                BorderBrush="Gray"
                 >
                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding Name}" />
             </Border>
-
-            <GridSplitter
-                Grid.Column="1"
-                Width="5"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Stretch"
-                Background="White"
-                />
 
             <!--  Messages Listing  -->
 
             <ItemsControl
                 x:Name="MessagesItemsCtrl"
-                Grid.Column="2"
+                Grid.Row="1"
+                Grid.Column="1"
+                Margin="10,20,10,20"
                 ItemTemplate="{DynamicResource MessagesDataTemplate}"
                 ItemsSource="{Binding SelectedParticipant.Messages}"
                 ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -356,35 +354,42 @@
             </ItemsControl>
 
             <!--  Send Message Form  -->
-            <Grid
-                Margin="0 0 0 10"
-                Grid.Row="1"
-                Grid.Column="2"
+            <Border
+                CornerRadius="10"
+                BorderThickness="1"
+                BorderBrush="#cccccc"
+                Padding="10"
+                Margin="10"
+                Grid.Row="2"
+                Grid.Column="1">
+                <Grid
+                
                 Visibility="{Binding Path=SendMessageVisiblity, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock
-                    Margin="0,20,0,0"
+                    <TextBlock
                     FontSize="24"
                     Text="Send Message" />
 
-                <TextBox FontFamily="{StaticResource Font}"  Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False" >
-                    <TextBox.InputBindings>
-                        <KeyBinding Key="Return" Command="{Binding SendMessageCommand}" />
-                    </TextBox.InputBindings>
-                </TextBox>
+                    <TextBox BorderThickness="0" FontFamily="{StaticResource Font}"  Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False" >
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding SendMessageCommand}" />
+                        </TextBox.InputBindings>
+                    </TextBox>
 
-                <Button
+                    <Button
+                    BorderThickness="0"
                     Grid.Column="2"
-                    Margin="5,0,5,0"
-                    Padding="10,3"
+                    Width="50"
                     HorizontalAlignment="Left"
+                    Background="Transparent"
                     Command="{Binding SendMessageCommand}"
-                    Content="Send" />
-            </Grid>
+                    Content="{StaticResource SendIcon}" />
+                </Grid>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>
