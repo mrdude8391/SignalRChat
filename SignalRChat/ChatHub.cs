@@ -257,16 +257,25 @@ namespace SignalRChat
                 foreach (var Message in MessageDb
                     .Where(o => o.MessageId == message.MessageId))
                 {
-                    Message.DeliveredTime = message.DeliveredTime;
-                    Message.Status = message.Status;
-                    if (message.Unread == false)
+
+                    if (message.Status == MessageStatus.Delivered) // The message status is delivered already if it is coming from a ReceivedMessages
+                    {
+                        Message.DeliveredTime = message.DeliveredTime;
+                        Message.Status = message.Status;
+                    }
+                    else if(message.Status == MessageStatus.Sent)  // Will be sent if it is being called from login
+                    {
+                        message.Status = MessageStatus.Delivered;
+                        message.DeliveredTime = DateTime.Now;
+                    }
+
+                    if (message.Unread == false) // if the message is read in any other client if there are multiple users updates the database version 
                         Message.Unread = false;
 
-                    message.Unread = Message.Unread; // sync message going back with message in database
-                }
+                    message.Unread = Message.Unread; // sync message going back to all user connections with message in database 
 
+                }
                 //
-                //await Clients.Group(sender).MessageDelivered(message);
                 await Clients.Clients(receiverConnections).MessageDeliveredForReceivers(message); // syncs with all other receivers that message was delivered to at least one other user
                 await Clients.Clients(senderConnections).MessageDelivered(message); // synchronize with sender that the message was delivered to recepient
 

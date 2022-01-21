@@ -35,7 +35,7 @@
             <Setter Property="VerticalContentAlignment" 
                     Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
             <Setter Property="Padding" Value="2,0,0,0"/>
-            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Margin" Value="2,0,2,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ListBoxItem}">
@@ -43,7 +43,9 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}" 
                                 Background="{TemplateBinding Background}"
-                                Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                                Padding="{TemplateBinding Padding}" 
+                                CornerRadius="10"
+                                SnapsToDevicePixels="true">
                             <ContentPresenter Grid.Column="1"
                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                               SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
@@ -51,7 +53,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="true">
-                                <Setter Property="Background" TargetName="Bd" Value="#E3F2FD"/>
+                                <Setter Property="Background" TargetName="Bd" Value="#d4d4d4"/>
                                 <Setter Property="Foreground" 
                                         Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
                             </Trigger>
@@ -60,7 +62,7 @@
                                     <Condition Property="IsSelected" Value="true"/>
                                     <Condition Property="Selector.IsSelectionActive" Value="false"/>
                                 </MultiTrigger.Conditions>
-                                <Setter Property="Background" TargetName="Bd" Value="#E3F2FD"/>
+                                <Setter Property="Background" TargetName="Bd" Value="#d4d4d4"/>
                                 <Setter Property="Foreground" 
                                         Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
                             </MultiTrigger>
@@ -75,7 +77,7 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#5478e4" />
+                    <Setter Property="Background" Value="#e6e6e6" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -89,7 +91,7 @@
                 Padding="0,0,15,0"
                 BorderBrush="Gray"
                 Margin="-2,0,0,0"
-                BorderThickness="0,0,0,1">
+                BorderThickness="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
@@ -101,9 +103,8 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Rectangle x:Name="ParticipantRct" Fill="#0047AB" Visibility="Hidden" />
 
-                    <emoji:TextBlock
+                    <TextBlock
                         
                         Grid.Row="0"
                         Grid.Column="1"
@@ -116,7 +117,7 @@
                                 <Binding Path="DatabaseName" />
                             </MultiBinding>
                         </TextBlock.Text>
-                    </emoji:TextBlock>
+                    </TextBlock>
 
                     <materialDesign:PackIcon
                         Name="NewMessage"
@@ -140,10 +141,10 @@
                         VerticalAlignment="Center">
                         <Ellipse.Style>
                             <Style TargetType="Ellipse">
-                                <Setter Property="Fill" Value="#b0b5b5" />
+                                <Setter Property="Fill" Value="#a1a1a1" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Path=Online}" Value="True">
-                                        <Setter Property="Fill" Value="#64dd17" />
+                                        <Setter Property="Fill" Value="#4CCA75" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -156,9 +157,6 @@
                 <DataTrigger Binding="{Binding Unread}" Value="True">
                     <Setter TargetName="NewMessage" Property="Visibility" Value="Visible" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}" Value="true">
-                    <Setter Property="Visibility" TargetName="ParticipantRct" Value="Visible"/>
-                </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
 
@@ -169,10 +167,8 @@
                 MinHeight="40"
                 Margin="10,0,60,10"
                 HorizontalAlignment="Left"
-                Background="#EFEBE9"
-                BorderBrush="#BCAAA4"
-                BorderThickness="1"
-                CornerRadius="4"
+                Background="#d4d4d4"
+                CornerRadius="8,8,8,0"
                 SnapsToDevicePixels="True">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -199,8 +195,11 @@
                         Name="Read"
                         Grid.Row="1"
                         Grid.Column="2"
+                        VerticalAlignment="Bottom"
                         Margin="2"
                         Kind="Read"
+                        Width="11"
+                        Height="11"
                         Visibility="Hidden"
                         />
                     <materialDesign:PackIcon
@@ -208,6 +207,8 @@
                         Grid.Row="1"
                         Grid.Column="2"
                         Margin="2"
+                        Width="13"
+                        Height="13"
                         Kind="Check"
                         Visibility="Hidden"
                         />
@@ -216,13 +217,18 @@
                         Grid.Row="1"
                         Grid.Column="2"
                         Margin="2"
+                        FontSize="5"
+                        Width="13"
+                        Height="13"
                         Kind="CheckAll"
                         Visibility="Hidden"
                         />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="1"
-                        FontSize="10"
+                        FontSize="13"
+                        Margin="0,0,0,1"
+                        VerticalAlignment="Bottom"
                         Text="{Binding CreatedTime, StringFormat={}{0:t}}" />
                 </Grid>
             </Border>
@@ -230,8 +236,8 @@
                 <DataTrigger Binding="{Binding IsOriginNative}" Value="True">
                     <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right" />
                     <Setter TargetName="MessageBorder" Property="Margin" Value="60,0,10,10"/>
-                    <Setter TargetName="MessageBorder" Property="Background" Value="#BBDEFB" />
-                    <Setter TargetName="MessageBorder" Property="BorderBrush" Value="#64B5F6"/>
+                    <Setter TargetName="MessageBorder" Property="Background" Value="#9cc7f1" />
+                    <Setter TargetName="MessageBorder" Property="CornerRadius" Value="8,8,0,8" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Status}" Value="Sent">
                     <Setter TargetName="Read" Property="Visibility" Value="Hidden" />
@@ -286,7 +292,8 @@
             </Border>
                 <!--participant name-->
             <Border
-                Background="#b3b3b3"
+                BorderThickness="0,0,0,1"
+                BorderBrush="Gray"
                 Grid.Row="0"
                 Grid.Column="1"
                 Padding="20,0,0,0">
@@ -295,7 +302,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 FontSize="24"
-                Text="{Binding SelectedParticipant.Name}" >
+                Text="{Binding SelectedParticipant.Name, StringFormat='@ {0}'}" >
                 </TextBlock>
             </Border>
 
@@ -309,7 +316,7 @@
                 SnapsToDevicePixels="True">
                 <ListBox
                     BorderThickness="0"
-                    Background="#e6e6e6"
+                    Background="#f3f3f3"
                     ItemTemplate="{DynamicResource ParticipantsDataTemplate}"
                     ItemsSource="{Binding Participants}"
                     ItemContainerStyle="{DynamicResource ParticipantsListBoxItemStyle}"
@@ -323,7 +330,7 @@
                 Grid.Row="2"
                 Grid.Column="0"
                 Padding="20"
-                Background="#cccccc"
+                Background="#d9d9d9"
                 Margin="0,0,0,0"
                 BorderThickness="0"
                 SnapsToDevicePixels="True"
