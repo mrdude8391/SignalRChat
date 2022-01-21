@@ -110,7 +110,7 @@
                                 <Binding Path="DatabaseName" />
                             </MultiBinding>
                         </TextBlock.Text>
-                    </TextBlock>
+                    </emoji:TextBlock>
 
                     <materialDesign:PackIcon
                         Name="NewMessage"
@@ -147,7 +147,14 @@
             </Border>
 
             <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding Unread}" Value="True">
+                <DataTrigger Binding="{Binding 
+                    
+                    
+                    
+                    
+                    
+                    
+                    }" Value="True">
                     <Setter TargetName="NewMessage" Property="Visibility" Value="Visible" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}" Value="true">
@@ -188,6 +195,40 @@
                         Grid.Column="1"
                         FontSize="10"
                         Text="{Binding CreatedTime, StringFormat={}{0:t}}" />
+                    <materialDesign:PackIcon
+                        Name="SentMessage"
+                        Margin="5"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Kind="Check"
+                        SnapsToDevicePixels="True"
+                        Visibility="Hidden" 
+                        />
+                    <materialDesign:PackIcon
+                        Name="ReceivedMessage"
+                        Margin="5"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Kind="CheckAll"
+                        SnapsToDevicePixels="True"
+                        Visibility="Hidden" 
+                        />
+                    <materialDesign:PackIcon
+                        Name="ReadMessage"
+                        Margin="5"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Kind="CheckAll"
+                        Foreground="Green"
+                        SnapsToDevicePixels="True"
+                        Visibility="Hidden" 
+                        />
                 </Grid>
             </Border>
             <DataTemplate.Triggers>
@@ -196,7 +237,9 @@
                     <Setter TargetName="MessageBorder" Property="Margin" Value="60,0,10,10"/>
                     <Setter TargetName="MessageBorder" Property="Background" Value="#BBDEFB" />
                     <Setter TargetName="MessageBorder" Property="BorderBrush" Value="#64B5F6"/>
+                    <Setter TargetName="ReceivedMessage" Property="Visibility" Value="Visible" />
                 </DataTrigger>
+                
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
                         <Condition Binding="{Binding Message}" Value="{x:Null}" />
@@ -207,6 +250,33 @@
                         <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right" />
                     </MultiDataTrigger.Setters>
                 </MultiDataTrigger>
+
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsOriginNative}" Value="True"/> <!--Must be the sent message; no checks on the received messages-->
+                        <Condition Binding="{Binding Unread}" Value="False" />
+                        <!--The problem with the above condition^ is that is will only change once the person has unread messages-->
+                        <!--a person would need to send a bunch fo messages, log out, receive unreads, then log back in to see that their messages have been read-->
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.Setters>
+                        <Setter TargetName="ReceivedMessage" Property="Visibility" Value="Hidden" />
+                        <Setter TargetName="ReadMessage" Property="Visibility" Value="Visible"/>
+                    </MultiDataTrigger.Setters>
+                </MultiDataTrigger>
+
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <!--Condition where message is still sending (sent but not yet delivered)-->
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.Setters>
+                        <!--set to a single checkmark -->
+                    </MultiDataTrigger.Setters>
+                </MultiDataTrigger>
+
+
+
+
+
             </DataTemplate.Triggers>
         </DataTemplate>
 
