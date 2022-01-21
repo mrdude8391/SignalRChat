@@ -9,8 +9,8 @@
     xmlns:views="clr-namespace:PVChat.WPF.Views"
     xmlns:vm="clr-namespace:PVChat.WPF.ViewModels"
     Title="PVChat"
-    Width="525"
-    Height="600"
+    Width="1200"
+    Height="650"
     mc:Ignorable="d">
 
     <i:Interaction.Triggers>

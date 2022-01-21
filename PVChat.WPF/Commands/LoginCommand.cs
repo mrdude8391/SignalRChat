@@ -30,7 +30,7 @@ namespace PVChat.WPF.Commands
                 Participants = await _chatService.Login(_viewModel.Name, _viewModel.DatabaseName);
                 _viewModel.ErrorMessage = string.Empty;
                 //_navService.CurrentViewModel = new ContactViewModel(_chatService, _navService, Users);
-                _navService.CurrentViewModel = new PVChatViewModel(_chatService, _navService, Participants);
+                _navService.CurrentViewModel = new PVChatViewModel(_chatService, _navService, Participants, _viewModel.Name);
             }
             catch (Exception)
             {

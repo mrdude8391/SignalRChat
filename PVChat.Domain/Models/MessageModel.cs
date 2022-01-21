@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PVChat.Domain.Models
 {
-    public class MessageModel
+    public class MessageModel :ModelBase
     {
         public string MessageId { get; set; }
         public string SenderId { get; set; }
@@ -14,11 +14,25 @@ namespace PVChat.Domain.Models
         public string SenderName { get; set; }
         public string  ReceiverName { get; set; }
         public string Message { get; set; }
-        public MessageStatus Status { get; set; }
+        private MessageStatus _status;
+
+        public MessageStatus Status
+        {
+            get { return _status; }
+            set { _status = value; OnPropertyChanged(nameof(Status)); }
+        }
+
         public DateTime CreatedTime { get; set; }
         public DateTime SentTime { get; set; }
         public DateTime DeliveredTime { get; set; }
-        public bool Unread { get; set; } // Read or Unread
+        private bool _unread;
+
+        public bool Unread
+        {
+            get { return _unread; }
+            set { _unread = value; OnPropertyChanged(nameof(Unread)); }
+        }
+
         public bool IsOriginNative { get; set; }
 
 

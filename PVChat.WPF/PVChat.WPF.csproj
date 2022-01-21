@@ -102,6 +102,7 @@
     <Compile Include="Commands\LogoutCommand.cs" />
     <Compile Include="Commands\SendMessageCommand.cs" />
     <Compile Include="Helpers\RichTextBoxHelper.cs" />
+    <Compile Include="Helpers\TextBlockHyperLinkHelper.cs" />
     <Compile Include="Services\NavigationService.cs" />
     <Compile Include="Services\SignalRChatService.cs" />
     <Compile Include="Utils\BringNewItemIntoViewBehavior.cs" />
@@ -154,6 +155,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Resource Include="Fonts\seguiemj.ttf" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
@@ -175,6 +177,9 @@
       <Project>{403ECFC1-DCAE-42B6-8BAB-7B2684110AF5}</Project>
       <Name>SignalRChat</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\logo-placeholder.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MaterialDesignThemes.4.3.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.4.3.0\build\MaterialDesignThemes.targets')" />
