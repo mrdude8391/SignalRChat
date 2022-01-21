@@ -120,21 +120,19 @@ namespace SignalRChat
             string database = Clients.CallerState.Database;
 
             List<ParticipantModel> participants = ChatClientsOfDb[database].Values.ToList();
-
             participants.Remove(participants.Where(p => p.Name == name).FirstOrDefault());
+            List<string> connections = GetAllConnectionIds(participants); // Get connections of all other participants 
 
-            List<string> connections = GetAllConnectionIds(participants);
-
-            ParticipantModel user = ChatClientsOfDb[database][name];
+            ParticipantModel user = ChatClientsOfDb[database][name]; // Gets user data from the database
 
             if (!string.IsNullOrEmpty(name))
             {
-                user.Connections.Remove(Context.ConnectionId);
-                if (!user.Connections.Any())
+                user.Connections.Remove(Context.ConnectionId); // Remove the connection id of the user client that is logging out
+                if (!user.Connections.Any()) // If there are no more connections set user to offline
                     user.Online = false;
                 //
 
-                Clients.Clients(connections).ParticipantLogout(user);
+                Clients.Clients(connections).ParticipantLogout(user); // Syncs with other participants of the users connections
 
                 Console.WriteLine($"-- { name} logged out");
             }
@@ -258,12 +256,12 @@ namespace SignalRChat
                     .Where(o => o.MessageId == message.MessageId))
                 {
 
-                    if (message.Status == MessageStatus.Delivered) // The message status is delivered already if it is coming from a ReceivedMessages
+                    if (message.Status == MessageStatus.Delivered) // if the receiver was online the delivered data will already be in the message
                     {
                         Message.DeliveredTime = message.DeliveredTime;
                         Message.Status = message.Status;
                     }
-                    else if(message.Status == MessageStatus.Sent)  // Will be sent if it is being called from login
+                    else if(message.Status == MessageStatus.Sent)  // delivered data set when the user logs in and receives the messages
                     {
                         message.Status = MessageStatus.Delivered;
                         message.DeliveredTime = DateTime.Now;

@@ -12,6 +12,8 @@ namespace PVChat.WPF.ViewModels
 {
     public class PVChatViewModel : ViewModelBase
     {
+        #region Properties
+
         private string _errorMessage = string.Empty;
 
         public string ErrorMessage
@@ -88,18 +90,19 @@ namespace PVChat.WPF.ViewModels
         }
 
         public bool HasErrorMessage => !string.IsNullOrEmpty(ErrorMessage);
-        //public ObservableCollection<MessageModel> SelectedMessages { get; } = new ObservableCollection<MessageModel>();
-
         public ObservableCollection<ParticipantModel> Participants { get; }
+
+        #endregion Properties
 
         public ICommand ConnectCommand { get; }
         public ICommand SendMessageCommand { get; }
         public ICommand LogoutCommand { get; }
+        public ICommand NewLineCommand { get; }
 
         private readonly ISignalRChatService _chatService;
         private readonly NavigationService _navService;
 
-        public PVChatViewModel(ISignalRChatService chatService, NavigationService navService, List<ParticipantModel> users, string name)
+        public PVChatViewModel(ISignalRChatService chatService, NavigationService navService, List<ParticipantModel> participants, string name)
         {
             _chatService = chatService;
             _navService = navService;
@@ -109,6 +112,7 @@ namespace PVChat.WPF.ViewModels
             SendMessageCommand = new SendMessageCommand(this, _chatService);
             ConnectCommand = new ConnectCommand(this, _chatService);
             LogoutCommand = new LogoutCommand(_chatService);
+            NewLineCommand = new NewLineCommand(this);
 
             _chatService.LoggedIn += OtherUserLoggedIn;
             _chatService.ParticipantLogout += OtherUserLoggedOut;
@@ -118,12 +122,11 @@ namespace PVChat.WPF.ViewModels
             _chatService.MessageDeliveredForReceivers += MessageDeliveredForReceivers;
             _chatService.UpdateMessagesReadStatus += UpdateMessagesReadStatus;
 
-            Participants = new ObservableCollection<ParticipantModel>(users);
+            Participants = new ObservableCollection<ParticipantModel>(participants);
+            SelectedParticipant = Participants.FirstOrDefault();
 
             GetMessages();
         }
-
-        
 
         private void SetVisibility() // send messages box visibility
         {
@@ -133,7 +136,7 @@ namespace PVChat.WPF.ViewModels
                 SendMessageVisiblity = false;
         }
 
-        private async void GetMessages() // get messages of selected user
+        private async void GetMessages() // Get messages of selected user
         {
             if (SelectedParticipant != null)
             {
@@ -141,10 +144,8 @@ namespace PVChat.WPF.ViewModels
                 user.Unread = false;
                 var msgs = await _chatService.GetMessages(user);
                 SelectedParticipant.Messages.Clear();
-                //SelectedMessages.Clear();
                 foreach (var msg in msgs)
                 {
-                    //SelectedMessages.Add(msg);
                     SelectedParticipant.Messages.Add(msg);
                 }
             }
@@ -176,6 +177,7 @@ namespace PVChat.WPF.ViewModels
                 }
                 else
                 {
+                    participant.Messages.Add(message);
                     participant.Unread = true;
                 }
             });
@@ -199,7 +201,7 @@ namespace PVChat.WPF.ViewModels
                     msg.SentTime = message.SentTime;
                     msg.Status = message.Status;
                 }
-                else // message was sent from user on another device 
+                else // message was sent from user on another device
                 {
                     message.IsOriginNative = true;
                     message.Unread = false;
@@ -215,11 +217,10 @@ namespace PVChat.WPF.ViewModels
                 var participant = Participants.FirstOrDefault(o => o.Name == user.Name);
                 participant.Unread = false;
 
-                foreach(var msg in participant.Messages)
+                foreach (var msg in participant.Messages)
                 {
                     msg.Unread = false;
                 }
-
             });
         }
 
@@ -235,7 +236,7 @@ namespace PVChat.WPF.ViewModels
                     msg.DeliveredTime = message.DeliveredTime;
                     msg.Status = message.Status;
                     msg.Unread = message.Unread;
-                    if(msg.Unread == false) // updates read status if message is read in another client instance
+                    if (msg.Unread == false) // updates read status if message is read in another client instance
                     {
                         participant.Unread = false;
                     }
@@ -245,10 +246,8 @@ namespace PVChat.WPF.ViewModels
                     message.IsOriginNative = true;
                     participant.Messages.Add(message);
                 }
-
             });
         }
-
 
         private void MessageDelivered(MessageModel message) // confirmation when message was delivered
         {
@@ -268,7 +267,6 @@ namespace PVChat.WPF.ViewModels
                     message.IsOriginNative = true;
                     participant.Messages.Add(message);
                 }
-
             });
         }
 
@@ -291,9 +289,10 @@ namespace PVChat.WPF.ViewModels
         {
             App.Current.Dispatcher.Invoke((Action)delegate
             {
-                var p = Participants.FirstOrDefault(o => o.Name == user.Name);
+                var p = Participants.FirstOrDefault(o => o.Name == user.Name); // Gets the model of participant that logged out
                 if (p != null)
                 {
+                    //Sync connections and online status
                     p.Connections = user.Connections;
                     p.Online = user.Online;
                 }

@@ -101,6 +101,7 @@
     <Compile Include="Commands\LoginCommand.cs" />
     <Compile Include="Commands\LogoutCommand.cs" />
     <Compile Include="Commands\SendMessageCommand.cs" />
+    <Compile Include="Converter\StringToBoolConverter.cs" />
     <Compile Include="Helpers\RichTextBoxHelper.cs" />
     <Compile Include="Helpers\TextBlockHyperLinkHelper.cs" />
     <Compile Include="Services\NavigationService.cs" />

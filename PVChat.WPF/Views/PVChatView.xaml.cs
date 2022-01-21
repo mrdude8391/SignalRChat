@@ -24,5 +24,6 @@ namespace PVChat.WPF.Views
             InitializeComponent();
             
         }
+
     }
 }
