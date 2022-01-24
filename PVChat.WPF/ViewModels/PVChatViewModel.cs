@@ -97,7 +97,6 @@ namespace PVChat.WPF.ViewModels
         public ICommand ConnectCommand { get; }
         public ICommand SendMessageCommand { get; }
         public ICommand LogoutCommand { get; }
-        public ICommand NewLineCommand { get; }
 
         private readonly ISignalRChatService _chatService;
         private readonly NavigationService _navService;
@@ -112,7 +111,6 @@ namespace PVChat.WPF.ViewModels
             SendMessageCommand = new SendMessageCommand(this, _chatService);
             ConnectCommand = new ConnectCommand(this, _chatService);
             LogoutCommand = new LogoutCommand(_chatService);
-            NewLineCommand = new NewLineCommand(this);
 
             _chatService.LoggedIn += OtherUserLoggedIn;
             _chatService.ParticipantLogout += OtherUserLoggedOut;
