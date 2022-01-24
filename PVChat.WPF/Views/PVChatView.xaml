@@ -12,16 +12,13 @@
     xmlns:vm="clr-namespace:PVChat.WPF.ViewModels"
     xmlns:convert="clr-namespace:PVChat.WPF.Converter"
     xmlns:System="clr-namespace:System;assembly=mscorlib"
+
     d:DesignHeight="600"
     d:DesignWidth="800"
     FontSize="18"
     mc:Ignorable="d">
 
-    <i:Interaction.Triggers>
-        <i:EventTrigger EventName="Closing">
-            <i:InvokeCommandAction Command="{Binding LogoutCommand}" />
-        </i:EventTrigger>
-    </i:Interaction.Triggers>
+    
 
     <UserControl.Resources>
         <FontFamily x:Key="Font" >/Fonts/#Segoe UI Emoji</FontFamily>

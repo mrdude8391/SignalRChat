@@ -8,6 +8,7 @@ namespace PVChat.WPF.ViewModels
     {
         private readonly SignalRChatService _chatService;
         private readonly NavigationService _navService;
+        private readonly NotificationService _notifService;
         private string _name;
 
         public string Name
@@ -50,11 +51,13 @@ namespace PVChat.WPF.ViewModels
 
         public ICommand LoginCommand { get; } // COMMANDS NEED TO BE PUBLIC
 
-        public LoginViewModel(NavigationService navService, SignalRChatService chatService)
+        public LoginViewModel(NavigationService navService, SignalRChatService chatService, NotificationService notifService)
         {
             _navService = navService;
             _chatService = chatService;
-            LoginCommand = new LoginCommand(this, _navService, _chatService);
+            _notifService = notifService;
+
+            LoginCommand = new LoginCommand(this, _navService, _chatService, _notifService);
 
             DatabaseName = "NS_1";
         }

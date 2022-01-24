@@ -13,10 +13,12 @@ namespace PVChat.WPF.Commands
     {
 
         private readonly ISignalRChatService _chatService;
+        private readonly NotificationService _notifService;
 
-        public LogoutCommand(ISignalRChatService chatService)
+        public LogoutCommand(ISignalRChatService chatService, NotificationService notifService)
         {
             _chatService = chatService;
+            _notifService = notifService;
 
         }
 
@@ -25,6 +27,7 @@ namespace PVChat.WPF.Commands
             try
             {
                 await _chatService.Logout();
+                _notifService.Close();
             }
             catch (Exception)
             {

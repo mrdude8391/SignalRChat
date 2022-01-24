@@ -5,7 +5,10 @@ using PVChat.WPF.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
+using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace PVChat.WPF.ViewModels
@@ -48,6 +51,18 @@ namespace PVChat.WPF.ViewModels
             {
                 _message = value;
                 OnPropertyChanged(nameof(Message));
+            }
+        }
+
+        private WindowState _windowState;
+        public WindowState WindowState
+        {
+            get
+            { return _windowState; }
+            set
+            {
+                _windowState = value;
+                OnPropertyChanged(nameof(WindowState));
             }
         }
 
@@ -96,21 +111,19 @@ namespace PVChat.WPF.ViewModels
 
         public ICommand ConnectCommand { get; }
         public ICommand SendMessageCommand { get; }
-        public ICommand LogoutCommand { get; }
 
         private readonly ISignalRChatService _chatService;
-        private readonly NavigationService _navService;
+        private readonly NotificationService _notifService;
 
-        public PVChatViewModel(ISignalRChatService chatService, NavigationService navService, List<ParticipantModel> participants, string name)
+        public PVChatViewModel(ISignalRChatService chatService, NotificationService notifService, List<ParticipantModel> participants, string name)
         {
             _chatService = chatService;
-            _navService = navService;
+            _notifService = notifService;
             _isConnected = true;
             _name = name;
 
             SendMessageCommand = new SendMessageCommand(this, _chatService);
             ConnectCommand = new ConnectCommand(this, _chatService);
-            LogoutCommand = new LogoutCommand(_chatService);
 
             _chatService.LoggedIn += OtherUserLoggedIn;
             _chatService.ParticipantLogout += OtherUserLoggedOut;
@@ -162,7 +175,7 @@ namespace PVChat.WPF.ViewModels
         private async void MessageReceived(MessageModel message) // add messages to list of messages when received from other user
         {
             ParticipantModel participant = Participants.FirstOrDefault(o => o.Name == message.SenderName);
-
+            
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
                 message.DeliveredTime = DateTime.Now;
@@ -172,9 +185,15 @@ namespace PVChat.WPF.ViewModels
                 {
                     message.Unread = false;
                     SelectedParticipant.Messages.Add(message);
+                    
                 }
                 else
                 {
+                    //Notify
+                    if (IsChatMinimized(_windowState))
+                    {
+                        _notifService.Notify(message.SenderName, message.Message);
+                    }
                     participant.Messages.Add(message);
                     participant.Unread = true;
                 }
@@ -183,6 +202,7 @@ namespace PVChat.WPF.ViewModels
             await _chatService.ConfirmMessageDelivered(participant, message); // tells the sender that message was delivered
         }
 
+        private bool IsChatMinimized(WindowState windowState) => windowState == WindowState.Minimized;
         private bool ReceivedWhileChatOpen(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
 
         private void MessageSent(MessageModel message) // confirmation when message was sent

@@ -4,6 +4,8 @@ using PVChat.WPF.Services;
 using PVChat.WPF.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace PVChat.WPF.Commands
 {
@@ -12,14 +14,16 @@ namespace PVChat.WPF.Commands
         private readonly LoginViewModel _viewModel;
         private readonly ISignalRChatService _chatService;
         private readonly NavigationService _navService;
+        private readonly NotificationService _notifService;
         public List<ParticipantModel> Participants { get; set; } = new List<ParticipantModel>();
 
-        public LoginCommand(LoginViewModel viewModel, NavigationService navService, ISignalRChatService chatService)
+        public LoginCommand(LoginViewModel viewModel, NavigationService navService, ISignalRChatService chatService, NotificationService notifService)
         {
             _viewModel = viewModel;
             _chatService = chatService;
             _navService = navService;
-
+            _notifService = notifService;
+            
         }
 
         public override async void Execute(object parameter)
@@ -29,8 +33,7 @@ namespace PVChat.WPF.Commands
                 await _chatService.Connect();
                 Participants = await _chatService.Login(_viewModel.Name, _viewModel.DatabaseName);
                 _viewModel.ErrorMessage = string.Empty;
-                //_navService.CurrentViewModel = new ContactViewModel(_chatService, _navService, Users);
-                _navService.CurrentViewModel = new PVChatViewModel(_chatService, _navService, Participants, _viewModel.Name);
+                _navService.CurrentViewModel = new PVChatViewModel(_chatService, _notifService, Participants, _viewModel.Name);
             }
             catch (Exception)
             {
