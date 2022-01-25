@@ -12,6 +12,7 @@
     Width="1200"
     Height="650"
     mc:Ignorable="d"
+    
     WindowState="{Binding CurrentViewModel.WindowState, Mode=TwoWay}"
     >
 

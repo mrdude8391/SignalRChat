@@ -16,13 +16,16 @@ namespace PVChat.WPF
     /// </summary>
     public partial class App : Application
     {
-        
+        NotificationService notifService = new NotificationService();
         protected override void OnStartup(StartupEventArgs e)
         {
+            
+            
+
             HubConnection connection = new HubConnection("http://localhost:9999/pvchat", false);
             SignalRChatService chatService = new SignalRChatService(connection);
             NavigationService navService = new NavigationService();
-            NotificationService notifService = new NotificationService();
+            
 
             navService.CurrentViewModel = new LoginViewModel(navService, chatService, notifService);
 
@@ -32,9 +35,19 @@ namespace PVChat.WPF
             };
 
             window.Show();
+
         }
 
-       
+        // enables and disables windows notifications depending on if the chat client is open or not
+        protected override void OnActivated(EventArgs e)
+        {
+            notifService.IsFocused = App.Current.MainWindow.IsActive;
+        }
+
+        protected override void OnDeactivated(EventArgs e)
+        {
+            notifService.IsFocused = App.Current.MainWindow.IsActive;
+        }
 
     }
 }

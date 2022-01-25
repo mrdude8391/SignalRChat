@@ -24,9 +24,7 @@ namespace PVChat.WPF
         public MainWindow()
         {
             InitializeComponent();
-
-          
-
+           
         }
 
         

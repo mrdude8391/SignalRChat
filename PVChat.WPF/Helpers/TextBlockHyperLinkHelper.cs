@@ -2,9 +2,10 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-using Emoji.Wpf;
+
 
 namespace PVChat.WPF.Helpers
 {
@@ -29,11 +30,12 @@ namespace PVChat.WPF.Helpers
 
         private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            var text_block = d as TextBlock;
+            var text_block = d as RichTextBox;
             if (text_block == null)
                 return;
 
-            text_block.Inlines.Clear();
+            Paragraph para = new Paragraph();
+            para.Inlines.Clear();
 
             var new_text = (string)e.NewValue;
             if (string.IsNullOrEmpty(new_text))
@@ -47,7 +49,7 @@ namespace PVChat.WPF.Helpers
                 if (match.Index != last_pos)
                 {
                     var raw_text = new_text.Substring(last_pos, match.Index - last_pos);
-                    text_block.Inlines.Add(new Run(raw_text));
+                    para.Inlines.Add(raw_text);
                 }
 
                 // Create a hyperlink for the match
@@ -55,9 +57,11 @@ namespace PVChat.WPF.Helpers
                 {
                     NavigateUri = new Uri(match.Value)
                 };
-                link.Click += OnUrlClick;
+                link.IsEnabled = true;
 
-                text_block.Inlines.Add(link);
+                link.Click += OnUrlClick;
+                para.Inlines.Add(link);
+
 
                 // Update the last matched position
                 last_pos = match.Index + match.Length;
@@ -65,7 +69,10 @@ namespace PVChat.WPF.Helpers
 
             // Finally, copy the remainder of the string
             if (last_pos < new_text.Length)
-                text_block.Inlines.Add(new Run(new_text.Substring(last_pos)));
+                para.Inlines.Add(new_text.Substring(last_pos));
+
+            text_block.Document.Blocks.Clear();
+            text_block.Document.Blocks.Add(para);
         }
 
         private static void OnUrlClick(object sender, RoutedEventArgs e)

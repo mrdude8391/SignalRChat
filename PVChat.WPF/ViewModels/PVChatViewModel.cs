@@ -10,6 +10,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Interop;
 
 namespace PVChat.WPF.ViewModels
 {
@@ -65,6 +66,7 @@ namespace PVChat.WPF.ViewModels
                 OnPropertyChanged(nameof(WindowState));
             }
         }
+
 
         private string _name;
 
@@ -181,7 +183,7 @@ namespace PVChat.WPF.ViewModels
                 message.DeliveredTime = DateTime.Now;
                 message.Status = MessageStatus.Delivered;
 
-                if (ReceivedWhileChatOpen(message))
+                if (IsParticipantSelected(message))
                 {
                     message.Unread = false;
                     SelectedParticipant.Messages.Add(message);
@@ -190,12 +192,13 @@ namespace PVChat.WPF.ViewModels
                 else
                 {
                     //Notify
-                    if (IsChatMinimized(_windowState))
-                    {
-                        _notifService.Notify(message.SenderName, message.Message);
-                    }
+                    
                     participant.Messages.Add(message);
                     participant.Unread = true;
+                }
+                if (IsChatMinimized(_windowState) || _notifService.IsFocused == false)
+                {
+                    _notifService.Notify(message.SenderName, message.Message);
                 }
             });
 
@@ -203,7 +206,7 @@ namespace PVChat.WPF.ViewModels
         }
 
         private bool IsChatMinimized(WindowState windowState) => windowState == WindowState.Minimized;
-        private bool ReceivedWhileChatOpen(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
+        private bool IsParticipantSelected(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
 
         private void MessageSent(MessageModel message) // confirmation when message was sent
         {

@@ -12,10 +12,10 @@
     xmlns:vm="clr-namespace:PVChat.WPF.ViewModels"
     xmlns:convert="clr-namespace:PVChat.WPF.Converter"
     xmlns:System="clr-namespace:System;assembly=mscorlib"
-
     d:DesignHeight="600"
     d:DesignWidth="800"
     FontSize="18"
+    
     mc:Ignorable="d">
 
     
@@ -25,7 +25,13 @@
         <materialDesign:PackIcon x:Key="SendIcon" Kind="Send" />
         <convert:StringToBoolConverter x:Key="StringToBoolConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        
+
+        <Style x:Key="MessageBoxStyle" TargetType="{x:Type RichTextBox}">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="MaxWidth" Value="400" />
+        </Style>
+
         <Style x:Key="ParticipantsListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="HorizontalContentAlignment" 
@@ -214,13 +220,18 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     
-                    <emoji:TextBlock
+                    <RichTextBox
                         x:Name="MessageBox"
+                        IsDocumentEnabled="True"
+                        Style="{StaticResource MessageBoxStyle}"
                         Grid.Row="0"
                         Grid.ColumnSpan="3"
                         Padding="5,2,5,0"
+                        IsReadOnly="True"
+                        Cursor="Arrow"
                         helpers:TextBlockHyperLinkHelper.Text="{Binding Message}"
-                        TextWrapping="Wrap" />
+                         />
+                    
 
                     <!--Text="{Binding Message}"-->
                     <!--helpers:TextBlockHyperLinkHelper.Text="{Binding Message}"-->
