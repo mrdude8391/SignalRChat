@@ -29,7 +29,6 @@
         <Style x:Key="MessageBoxStyle" TargetType="{x:Type RichTextBox}">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="MaxWidth" Value="400" />
         </Style>
 
         <Style x:Key="ParticipantsListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
@@ -209,20 +208,22 @@
                 Background="#d4d4d4"
                 CornerRadius="8,8,8,0"
                 SnapsToDevicePixels="True">
-                <Grid>
+                
+                <Grid Name="MessageGrid">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="250" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    
+
                     <RichTextBox
                         x:Name="MessageBox"
                         IsDocumentEnabled="True"
+                        Width="{Binding ActualWidth, ElementName=MessageGrid}"
                         Style="{StaticResource MessageBoxStyle}"
                         Grid.Row="0"
                         Grid.ColumnSpan="3"
@@ -231,7 +232,7 @@
                         Cursor="Arrow"
                         helpers:TextBlockHyperLinkHelper.Text="{Binding Message}"
                          />
-                    
+
 
                     <!--Text="{Binding Message}"-->
                     <!--helpers:TextBlockHyperLinkHelper.Text="{Binding Message}"-->
@@ -354,7 +355,7 @@
                 <ListBox
                     BorderThickness="0"
                     Background="#f3f3f3"
-                    ItemTemplate="{DynamicResource ParticipantsDataTemplate}"
+                    ItemTemplate="{StaticResource ParticipantsDataTemplate}"
                     ItemsSource="{Binding Participants}"
                     ItemContainerStyle="{DynamicResource ParticipantsListBoxItemStyle}"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"

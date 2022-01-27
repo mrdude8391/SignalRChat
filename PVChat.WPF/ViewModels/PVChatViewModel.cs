@@ -55,19 +55,7 @@ namespace PVChat.WPF.ViewModels
             }
         }
 
-        private WindowState _windowState;
-        public WindowState WindowState
-        {
-            get
-            { return _windowState; }
-            set
-            {
-                _windowState = value;
-                OnPropertyChanged(nameof(WindowState));
-            }
-        }
-
-
+        
         private string _name;
 
         public string Name
@@ -79,6 +67,8 @@ namespace PVChat.WPF.ViewModels
                 OnPropertyChanged(nameof(Name));
             }
         }
+
+      
 
         private ParticipantModel _selectedParticipant;
 
@@ -127,6 +117,7 @@ namespace PVChat.WPF.ViewModels
             SendMessageCommand = new SendMessageCommand(this, _chatService);
             ConnectCommand = new ConnectCommand(this, _chatService);
 
+
             _chatService.LoggedIn += OtherUserLoggedIn;
             _chatService.ParticipantLogout += OtherUserLoggedOut;
             _chatService.MessageReceived += MessageReceived;
@@ -155,6 +146,8 @@ namespace PVChat.WPF.ViewModels
             {
                 var user = Participants.Where(u => u.Name == SelectedParticipant.Name).FirstOrDefault();
                 user.Unread = false;
+                var count = user.Messages.Where(m => m.Unread == true).Count();
+                _notifService.NotifCount -= count;
                 var msgs = await _chatService.GetMessages(user);
                 SelectedParticipant.Messages.Clear();
                 foreach (var msg in msgs)
@@ -196,7 +189,7 @@ namespace PVChat.WPF.ViewModels
                     participant.Messages.Add(message);
                     participant.Unread = true;
                 }
-                if (IsChatMinimized(_windowState) || _notifService.IsFocused == false)
+                if (_notifService.IsFocused == false)
                 {
                     _notifService.Notify(message.SenderName, message.Message);
                 }

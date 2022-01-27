@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Drawing;
 
 
 namespace PVChat.WPF.Helpers
@@ -73,6 +74,8 @@ namespace PVChat.WPF.Helpers
 
             text_block.Document.Blocks.Clear();
             text_block.Document.Blocks.Add(para);
+
+
         }
 
         private static void OnUrlClick(object sender, RoutedEventArgs e)

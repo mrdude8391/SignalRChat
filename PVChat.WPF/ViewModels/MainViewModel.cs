@@ -17,7 +17,7 @@ namespace PVChat.WPF.ViewModels
         private readonly NotificationService _notifService;
 
         public ViewModelBase CurrentViewModel => _navService.CurrentViewModel;
-
+        public int Notifications => _notifService.NotifCount;
         
         public ICommand LogoutCommand { get; }
 
@@ -28,6 +28,8 @@ namespace PVChat.WPF.ViewModels
             _notifService = notifService;
 
             _navService.CurrentViewModelChanged += OnCurrentViewModelChanged;
+            _notifService.Notified += Notified;
+            
 
             LogoutCommand = new LogoutCommand(chatService, notifService);
         }
@@ -36,5 +38,11 @@ namespace PVChat.WPF.ViewModels
         {
             OnPropertyChanged(nameof(CurrentViewModel));
         }
+
+        private void Notified()
+        {
+            OnPropertyChanged(nameof(Notifications));
+        }
+
     }
 }

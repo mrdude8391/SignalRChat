@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
@@ -8,12 +9,15 @@ namespace PVChat.WPF.Services
     public class NotificationService : INotifyPropertyChanged
     {
         private readonly NotifyIcon _notifyIcon;
-        private bool _isFocused;
+        public event Action Notified;
+        public bool IsFocused { get; set; }
 
-        public bool IsFocused
+        private int _notifCount;
+
+        public int NotifCount
         {
-            get { return _isFocused; }
-            set { _isFocused = value; OnPropertyChanged(nameof(IsFocused)); }
+            get { return _notifCount; }
+            set { _notifCount = value; OnNotified(); }
         }
 
 
@@ -24,14 +28,21 @@ namespace PVChat.WPF.Services
             //icon property has to be embedded resource and always copy to output directory
             _notifyIcon.Icon = new Icon("Images/NewMessage.ico");
             _notifyIcon.Visible = true;
-            
+
+            _notifCount = 0;
         }
 
         public void Notify(string title, string message)
         {
             _notifyIcon.ShowBalloonTip(200, title, message, ToolTipIcon.Info);
+            NotifCount += 1;
         }
-        
+
+        private void OnNotified()
+        {
+
+            Notified?.Invoke();
+        }
         public void Close()
         {
             _notifyIcon.Dispose();

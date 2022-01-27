@@ -8,20 +8,73 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="clr-namespace:PVChat.WPF.Views"
     xmlns:vm="clr-namespace:PVChat.WPF.ViewModels"
+    xmlns:helpers="clr-namespace:PVChat.WPF.Helpers"
     Title="PVChat"
     Width="1200"
     Height="650"
     mc:Ignorable="d"
-    
-    WindowState="{Binding CurrentViewModel.WindowState, Mode=TwoWay}"
+    Icon="/NewMessage.ico"
     >
+    
+
+    <Window.Resources>
+
+        
+
+        <ResourceDictionary>
+            <DrawingImage x:Key="Badge" >
+                <DrawingImage.Drawing>
+                    <GeometryDrawing>
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,15,15"></RectangleGeometry>
+                        </GeometryDrawing.Geometry>
+                        <GeometryDrawing.Brush>
+                            <VisualBrush>
+                                <VisualBrush.Visual>
+                                    <Grid>
+                                        <Ellipse Margin="0,0,0,3" Width="14" Height="14" Fill="Red" Stroke="Black"  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,4" Text="{Binding Notifications}" FontSize="10" Foreground="White"></TextBlock>
+                                    </Grid>
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </GeometryDrawing.Brush>
+                    </GeometryDrawing>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+
+            <DataTemplate x:Key="OverlayIcon">
+                <Grid Width="16" Height="16" Name="Overlay" >
+                    <Ellipse Margin="0,0,0,3" Width="14" Height="14" Fill="Red" Stroke="Black"  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,4" Text="{Binding}" FontSize="10" Foreground="White"/>
+                </Grid>
+                <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding}" Value="0" >
+                        <Setter TargetName="Overlay" Property="Visibility" Value="Hidden" />
+                    </DataTrigger>
+
+                </DataTemplate.Triggers>
+            </DataTemplate>
+        </ResourceDictionary>
+        
+    </Window.Resources>
+
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo 
+            helpers:TaskBarItemHelper.Text="{Binding Notifications}"
+            helpers:TaskBarItemHelper.Template="{StaticResource OverlayIcon}"
+            >
+
+        </TaskbarItemInfo>
+    </Window.TaskbarItemInfo>
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">
             <i:InvokeCommandAction Command="{Binding LogoutCommand}"/>
         </i:EventTrigger>
     </i:Interaction.Triggers>
-
+    
+        
     <ContentControl Content="{Binding CurrentViewModel}" >
         <ContentControl.Resources>
             <DataTemplate DataType="{x:Type vm:PVChatViewModel}" >
@@ -32,4 +85,7 @@
             </DataTemplate>
         </ContentControl.Resources>
     </ContentControl>
+    
+    
+    
 </Window>
