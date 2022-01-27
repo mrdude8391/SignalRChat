@@ -22,25 +22,7 @@
         
 
         <ResourceDictionary>
-            <DrawingImage x:Key="Badge" >
-                <DrawingImage.Drawing>
-                    <GeometryDrawing>
-                        <GeometryDrawing.Geometry>
-                            <RectangleGeometry Rect="0,0,15,15"></RectangleGeometry>
-                        </GeometryDrawing.Geometry>
-                        <GeometryDrawing.Brush>
-                            <VisualBrush>
-                                <VisualBrush.Visual>
-                                    <Grid>
-                                        <Ellipse Margin="0,0,0,3" Width="14" Height="14" Fill="Red" Stroke="Black"  HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,4" Text="{Binding Notifications}" FontSize="10" Foreground="White"></TextBlock>
-                                    </Grid>
-                                </VisualBrush.Visual>
-                            </VisualBrush>
-                        </GeometryDrawing.Brush>
-                    </GeometryDrawing>
-                </DrawingImage.Drawing>
-            </DrawingImage>
+            
 
             <DataTemplate x:Key="OverlayIcon">
                 <Grid Width="16" Height="16" Name="Overlay" >
