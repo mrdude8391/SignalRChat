@@ -113,6 +113,7 @@
     <Compile Include="Helpers\RichTextBoxHelper.cs" />
     <Compile Include="Helpers\TaskBarItemHelper.cs" />
     <Compile Include="Helpers\TextBlockHyperLinkHelper.cs" />
+    <Compile Include="Helpers\TextBoxLinkHelper.cs" />
     <Compile Include="Services\NavigationService.cs" />
     <Compile Include="Services\NotificationService.cs" />
     <Compile Include="Services\SignalRChatService.cs" />

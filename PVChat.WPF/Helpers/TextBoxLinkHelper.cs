@@ -5,21 +5,17 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-using System.Drawing;
-
 
 namespace PVChat.WPF.Helpers
 {
-    public class TextBlockHyperLinkHelper
-    {
-        
-        // Copied from http://geekswithblogs.net/casualjim/archive/2005/12/01/61722.aspx
-        private static readonly Regex RE_URL = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    public class TextBoxLinkHelper
+    {// Copied from http://geekswithblogs.net/casualjim/archive/2005/12/01/61722.aspx
+        private static readonly Regex RE_URL = new Regex(@"(?#Protocol)(?:(?:ht|f)tp(?:s?)\:\/\/|~/|/)?(?#Username:Password)(?:\w+:\w+@)?(?#Subdomains)(?:(?:[-\w]+\.)+(?#TopLevel Domains)(?:com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum|travel|[a-z]{2}))(?#Port)(?::[\d]{1,5})?(?#Directories)(?:(?:(?:/(?:[-\w~!$+|.,=]|%[a-f\d]{2})+)+|/)+|\?|#)?(?#Query)(?:(?:\?(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)(?:&(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)*)*(?#Anchor)(?:#(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)?");
 
         public static readonly DependencyProperty TextProperty = DependencyProperty.RegisterAttached(
             "Text",
             typeof(string),
-            typeof(TextBlockHyperLinkHelper),
+            typeof(TextBoxLinkHelper),
             new PropertyMetadata(null, OnTextChanged)
         );
 
@@ -31,12 +27,10 @@ namespace PVChat.WPF.Helpers
 
         private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            var text_block = d as RichTextBox;
+            var text_block = d as TextBox;
             if (text_block == null)
                 return;
 
-            Paragraph para = new Paragraph();
-            para.Inlines.Clear();
 
             var new_text = (string)e.NewValue;
             if (string.IsNullOrEmpty(new_text))
@@ -50,27 +44,18 @@ namespace PVChat.WPF.Helpers
                 if (match.Index != last_pos)
                 {
                     var raw_text = new_text.Substring(last_pos, match.Index - last_pos);
-                    para.Inlines.Add(raw_text);
+                    text_block.Text += raw_text;
                 }
 
-                //Create a hyperlink for the match
-                try
-                    {
-                        var link = new Hyperlink(new Run(match.Value))
-                        {
-                            NavigateUri = new Uri(match.Value)
-                        };
-                        link.IsEnabled = true;
+                // Create a hyperlink for the match
+                var link = new Hyperlink(new Run(match.Value))
+                {
+                    NavigateUri = new Uri(match.Value)
+                };
+                link.IsEnabled = true;
 
-                        link.Click += OnUrlClick;
-                        para.Inlines.Add(link);
-                    }
-                    catch (Exception)
-                    {
-                        para.Inlines.Add(match.Value.ToString());
-                    }
-
-
+                link.Click += OnUrlClick;
+                text_block.Text += link.NavigateUri;
 
 
                 // Update the last matched position
@@ -79,19 +64,7 @@ namespace PVChat.WPF.Helpers
 
             // Finally, copy the remainder of the string
             if (last_pos < new_text.Length)
-                para.Inlines.Add(new_text.Substring(last_pos));
-
-            text_block.Document.Blocks.Clear();
-            text_block.Document.Blocks.Add(para);
-            
-            text_block.Document.PageWidth = new_text.Length * 10;
-
-            if (text_block.Document.PageWidth > 500)
-            {
-                text_block.Document.PageWidth = 500;
-            }
-            
-            
+                text_block.Text += new_text.Substring(last_pos);
 
         }
 
@@ -103,4 +76,3 @@ namespace PVChat.WPF.Helpers
         }
     }
 }
-    
