@@ -149,10 +149,12 @@ namespace PVChat.WPF.ViewModels
                 var count = user.Messages.Where(m => m.Unread == true).Count();
                 _notifService.NotifCount -= count;
                 var msgs = await _chatService.GetMessages(user);
+                SetDateBreaks(msgs);
                 SelectedParticipant.Messages.Clear();
                 foreach (var msg in msgs)
                 {
                     SelectedParticipant.Messages.Add(msg);
+
                 }
             }
             else if (SelectedParticipant == null)
@@ -165,6 +167,21 @@ namespace PVChat.WPF.ViewModels
                     }
                 }
             }
+        }
+
+        private List<MessageModel> SetDateBreaks(List<MessageModel> msgs)
+        {
+            DateTime firstDay = new DateTime();
+            foreach(var msg in msgs)
+            {
+                if(msg.CreatedTime.Date != firstDay.Date)
+                {
+                    msg.HasDateBreak = true;
+                    firstDay = msg.CreatedTime.Date;
+                }
+            }
+
+            return msgs;
         }
 
         private async void MessageReceived(MessageModel message) // add messages to list of messages when received from other user

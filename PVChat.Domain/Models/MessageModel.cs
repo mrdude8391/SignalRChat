@@ -14,6 +14,7 @@ namespace PVChat.Domain.Models
         public string SenderName { get; set; }
         public string  ReceiverName { get; set; }
         public string Message { get; set; }
+
         private MessageStatus _status;
 
         public MessageStatus Status
@@ -25,8 +26,8 @@ namespace PVChat.Domain.Models
         public DateTime CreatedTime { get; set; }
         public DateTime SentTime { get; set; }
         public DateTime DeliveredTime { get; set; }
-        private bool _unread;
 
+        private bool _unread;  // Unread can maybe be moved to MessageStatus
         public bool Unread
         {
             get { return _unread; }
@@ -34,7 +35,7 @@ namespace PVChat.Domain.Models
         }
 
         public bool IsOriginNative { get; set; }
-
+        public bool HasDateBreak { get; set; }
 
         public MessageModel()
         {
@@ -42,6 +43,7 @@ namespace PVChat.Domain.Models
             CreatedTime = DateTime.Now;
             Status = MessageStatus.Pending;
             Unread = true;
+            HasDateBreak = false;
         }
 
     }

@@ -109,6 +109,7 @@
     <Compile Include="Commands\LoginCommand.cs" />
     <Compile Include="Commands\LogoutCommand.cs" />
     <Compile Include="Commands\SendMessageCommand.cs" />
+    <Compile Include="Converter\DateTimeFormatConverter.cs" />
     <Compile Include="Converter\StringToBoolConverter.cs" />
     <Compile Include="Helpers\RichTextBoxHelper.cs" />
     <Compile Include="Helpers\TaskBarItemHelper.cs" />

@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Drawing;
-
+using System.Globalization;
 
 namespace PVChat.WPF.Helpers
 {
@@ -83,18 +83,50 @@ namespace PVChat.WPF.Helpers
 
             text_block.Document.Blocks.Clear();
             text_block.Document.Blocks.Add(para);
-            
-            text_block.Document.PageWidth = new_text.Length * 10;
 
-            if (text_block.Document.PageWidth > 500)
-            {
-                text_block.Document.PageWidth = 500;
-            }
-            
-            
+            //text_block.Document.PageWidth = (new_text.Length * 15) + 20;
+
+            //if (text_block.Document.PageWidth > 500)
+            //{
+            //    text_block.Document.PageWidth = 500;
+            //}
+            var text = StringFromRichTextBox(text_block);
+
+
+            var size = MeasureString(text, text_block);
+
+            text_block.Document.PageWidth = size.Width;
+
 
         }
+        private static string StringFromRichTextBox(RichTextBox rtb)
+        {
+            TextRange textRange = new TextRange(
+                // TextPointer to the start of content in the RichTextBox.
+                rtb.Document.ContentStart,
+                // TextPointer to the end of content in the RichTextBox.
+                rtb.Document.ContentEnd
+            );
 
+            // The Text property on a TextRange object returns a string
+            // representing the plain text content of the TextRange.
+            return textRange.Text;
+        }
+        private static System.Windows.Size MeasureString(string candidate, RichTextBox text_block)
+        {
+            var formattedText = new FormattedText(
+                candidate,
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                new Typeface(text_block.FontFamily, text_block.FontStyle, text_block.FontWeight, text_block.FontStretch),
+                text_block.FontSize,
+                System.Windows.Media.Brushes.Black,
+                new NumberSubstitution(),
+                TextFormattingMode.Display
+                );
+
+            return new System.Windows.Size(formattedText.Width + 20, formattedText.Height);
+        }
         private static void OnUrlClick(object sender, RoutedEventArgs e)
         {
             var link = (Hyperlink)sender;

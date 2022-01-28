@@ -24,6 +24,7 @@
         <FontFamily x:Key="Font" >/Fonts/#Segoe UI Emoji</FontFamily>
         <materialDesign:PackIcon x:Key="SendIcon" Kind="Send" />
         <convert:StringToBoolConverter x:Key="StringToBoolConverter" />
+        <convert:DateTimeFormatConverter x:Key="DateFormatConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
         <Style x:Key="MessageBoxStyle" TargetType="{x:Type TextBox}">
@@ -199,7 +200,20 @@
         </DataTemplate>
 
         <DataTemplate x:Key="MessagesDataTemplate">
-            <Border
+            <Grid>
+                <Grid.RowDefinitions >
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <TextBlock
+                    Visibility="{Binding HasDateBreak, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Name="DateBreak"     
+                    HorizontalAlignment="Center"
+                    Text="{Binding CreatedTime, StringFormat={}{0:dddd, MMMM d}}"
+                    />
+                <Border
+                Grid.Row="1"
                 Name="MessageBorder"
                 MinWidth="100"
                 MinHeight="40"
@@ -208,19 +222,19 @@
                 Background="#d4d4d4"
                 CornerRadius="8,8,8,0"
                 SnapsToDevicePixels="True">
-                
-                <Grid Name="MessageGrid">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MaxWidth="500" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
 
-                    <RichTextBox
+                    <Grid Name="MessageGrid">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" MaxWidth="500" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <RichTextBox
                         x:Name="MessageBox"
                         Background="Transparent"
                         IsDocumentEnabled="True"
@@ -234,9 +248,9 @@
                          />
 
 
-                    <!--Text="{Binding Message}"-->
-                    <!--helpers:TextBlockHyperLinkHelper.Text="{Binding Message}"-->
-                    <materialDesign:PackIcon 
+                        <!--Text="{Binding Message}"-->
+                        <!--helpers:TextBlockHyperLinkHelper.Text="{Binding Message}"-->
+                        <materialDesign:PackIcon 
                         Name="Read"
                         Grid.Row="1"
                         Grid.Column="2"
@@ -248,7 +262,7 @@
                         Foreground="Blue"
                         Visibility="Hidden"
                         />
-                    <materialDesign:PackIcon
+                        <materialDesign:PackIcon
                         Name="Sent"
                         Grid.Row="1"
                         Grid.Column="2"
@@ -258,7 +272,7 @@
                         Kind="Check"
                         Visibility="Hidden"
                         />
-                    <materialDesign:PackIcon
+                        <materialDesign:PackIcon
                         Name="Delivered"
                         Grid.Row="1"
                         Grid.Column="2"
@@ -269,15 +283,17 @@
                         Kind="CheckAll"
                         Visibility="Hidden"
                         />
-                    <TextBlock
+                        <TextBlock
+                        Name="TimeBlock"
                         Grid.Row="1"
                         Grid.Column="1"
                         FontSize="13"
                         Margin="0,0,0,1"
                         VerticalAlignment="Bottom"
-                        Text="{Binding CreatedTime, StringFormat={}{0:t}}" />
-                </Grid>
-            </Border>
+                        />
+                    </Grid>
+                </Border>
+            </Grid>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsOriginNative}" Value="True">
                     <Setter TargetName="MessageBorder" Property="HorizontalAlignment" Value="Right" />
@@ -300,6 +316,16 @@
                     <Setter TargetName="Sent" Property="Visibility" Value="Hidden" />
                     <Setter TargetName="Delivered" Property="Visibility" Value="Hidden" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding CreatedTime, Converter={StaticResource DateFormatConverter}}" Value="Today" >
+                    <Setter TargetName="TimeBlock" Property="Text" Value="{Binding CreatedTime, StringFormat={}{0:t}}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CreatedTime, Converter={StaticResource DateFormatConverter}}" Value="NotToday" >
+                    <Setter TargetName="TimeBlock" Property="Text" Value="{Binding CreatedTime, StringFormat={}{0:ddd h:mm tt}}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CreatedTime, Converter={StaticResource DateFormatConverter}}" Value="NotThisYear" >
+                    <Setter TargetName="TimeBlock" Property="Text" Value="{Binding CreatedTime, StringFormat={}{0:MMM d yyyy}}" />
+                </DataTrigger>
+                
             </DataTemplate.Triggers>
         </DataTemplate>
 
