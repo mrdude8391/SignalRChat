@@ -40,7 +40,11 @@ namespace PVChat.WPF.Helpers
 
             var new_text = (string)e.NewValue;
             if (string.IsNullOrEmpty(new_text))
+            {
+                text_block.Document.PageWidth = 10;
                 return;
+            }
+           
 
             // Find all URLs using a regular expression
             int last_pos = 0;
@@ -70,9 +74,6 @@ namespace PVChat.WPF.Helpers
                         para.Inlines.Add(match.Value.ToString());
                     }
 
-
-
-
                 // Update the last matched position
                 last_pos = match.Index + match.Length;
             }
@@ -84,19 +85,16 @@ namespace PVChat.WPF.Helpers
             text_block.Document.Blocks.Clear();
             text_block.Document.Blocks.Add(para);
 
-            //text_block.Document.PageWidth = (new_text.Length * 15) + 20;
-
-            //if (text_block.Document.PageWidth > 500)
-            //{
-            //    text_block.Document.PageWidth = 500;
-            //}
             var text = StringFromRichTextBox(text_block);
 
 
             var size = MeasureString(text, text_block);
 
             text_block.Document.PageWidth = size.Width;
-
+            if (text_block.Document.PageWidth > 500)
+            {
+                text_block.Document.PageWidth = 500;
+            }
 
         }
         private static string StringFromRichTextBox(RichTextBox rtb)

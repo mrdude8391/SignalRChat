@@ -54,8 +54,17 @@ namespace PVChat.WPF.ViewModels
                 OnPropertyChanged(nameof(Message));
             }
         }
+        private byte[] _image;
 
-        
+        public byte[] Image
+        {
+            get { return _image; }
+            set { _image = value;
+                OnPropertyChanged(nameof(Image));
+            }
+        }
+
+
         private string _name;
 
         public string Name
@@ -103,6 +112,8 @@ namespace PVChat.WPF.ViewModels
 
         public ICommand ConnectCommand { get; }
         public ICommand SendMessageCommand { get; }
+        public ICommand SendImageCommand { get; }
+        public ICommand OpenImageCommand { get; }
 
         private readonly ISignalRChatService _chatService;
         private readonly NotificationService _notifService;
@@ -116,6 +127,8 @@ namespace PVChat.WPF.ViewModels
 
             SendMessageCommand = new SendMessageCommand(this, _chatService);
             ConnectCommand = new ConnectCommand(this, _chatService);
+            SendImageCommand = new SendImageCommand(this, _chatService);
+            OpenImageCommand = new OpenImageCommand(this);
 
 
             _chatService.LoggedIn += OtherUserLoggedIn;
@@ -126,10 +139,27 @@ namespace PVChat.WPF.ViewModels
             _chatService.MessageDeliveredForReceivers += MessageDeliveredForReceivers;
             _chatService.UpdateMessagesReadStatus += UpdateMessagesReadStatus;
 
+            _notifService.Focused += OnFocused;
+
             Participants = new ObservableCollection<ParticipantModel>(participants);
             SelectedParticipant = Participants.FirstOrDefault();
 
             GetMessages();
+        }
+
+        private void OnFocused()
+        {
+            try
+            {
+                var count = SelectedParticipant.Messages.Where(m => m.Unread == true).Count();
+                _notifService.NotifCount -= count;
+            }
+            catch (Exception)
+            {
+
+                return;
+            }
+            
         }
 
         private void SetVisibility() // send messages box visibility
@@ -202,11 +232,10 @@ namespace PVChat.WPF.ViewModels
                 else
                 {
                     //Notify
-                    
                     participant.Messages.Add(message);
                     participant.Unread = true;
                 }
-                if (_notifService.IsFocused == false)
+                if (_notifService.IsFocused != true)
                 {
                     _notifService.Notify(message.SenderName, message.Message);
                 }
@@ -215,8 +244,8 @@ namespace PVChat.WPF.ViewModels
             await _chatService.ConfirmMessageDelivered(participant, message); // tells the sender that message was delivered
         }
 
-        private bool IsChatMinimized(WindowState windowState) => windowState == WindowState.Minimized;
         private bool IsParticipantSelected(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
+        
 
         private void MessageSent(MessageModel message) // confirmation when message was sent
         {
@@ -252,6 +281,7 @@ namespace PVChat.WPF.ViewModels
                 {
                     msg.Unread = false;
                 }
+                
             });
         }
 

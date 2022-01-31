@@ -21,7 +21,7 @@ namespace PVChat.WPF.Commands
         {
             try
             {
-                if(!string.IsNullOrWhiteSpace(_viewModel.Message))
+                if(!string.IsNullOrWhiteSpace(_viewModel.Message) || _viewModel.Image != null || _viewModel.Image.Length != 0)
                 {
                     var recepient = _viewModel.SelectedParticipant;
                     MessageModel newMessage = new MessageModel
@@ -31,17 +31,21 @@ namespace PVChat.WPF.Commands
                         ReceiverId = _viewModel.SelectedParticipant.Id,
                         ReceiverName = _viewModel.SelectedParticipant.Name,
                         Message = _viewModel.Message,
+                        Image = _viewModel.Image,
                         //Status = default,
                         //CreatedTime = default
                         //SentTime = not yet
                         //DeliveredTime = not yet
                         IsOriginNative = true,
                     };
+
+
                     //_viewModel.SelectedMessages.Add(newMessage);
                     _viewModel.SelectedParticipant.Messages.Add(newMessage);
 
                     _viewModel.ErrorMessage = string.Empty;
                     _viewModel.Message = string.Empty;
+                    _viewModel.Image = null;
                     await _chatService.SendMessage(recepient, newMessage);
                 }
                 

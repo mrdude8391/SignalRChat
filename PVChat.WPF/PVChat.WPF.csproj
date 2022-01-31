@@ -108,13 +108,17 @@
     <Compile Include="Commands\ConnectCommand.cs" />
     <Compile Include="Commands\LoginCommand.cs" />
     <Compile Include="Commands\LogoutCommand.cs" />
+    <Compile Include="Commands\OpenImageCommand.cs" />
+    <Compile Include="Commands\SendImageCommand.cs" />
     <Compile Include="Commands\SendMessageCommand.cs" />
     <Compile Include="Converter\DateTimeFormatConverter.cs" />
+    <Compile Include="Converter\ImageToBoolConverter.cs" />
     <Compile Include="Converter\StringToBoolConverter.cs" />
     <Compile Include="Helpers\RichTextBoxHelper.cs" />
     <Compile Include="Helpers\TaskBarItemHelper.cs" />
     <Compile Include="Helpers\TextBlockHyperLinkHelper.cs" />
     <Compile Include="Helpers\TextBoxLinkHelper.cs" />
+    <Compile Include="Services\DialogService.cs" />
     <Compile Include="Services\NavigationService.cs" />
     <Compile Include="Services\NotificationService.cs" />
     <Compile Include="Services\SignalRChatService.cs" />

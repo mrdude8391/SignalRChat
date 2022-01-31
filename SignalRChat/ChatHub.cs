@@ -227,7 +227,7 @@ namespace SignalRChat
             var database = recepient.DatabaseName;
             List<string> senderConnections = ChatClientsOfDb[database][sender].Connections;
 
-            if (!string.IsNullOrEmpty(sender) && recepient.Name != sender && !string.IsNullOrEmpty(message.Message) && ChatClientsOfDb[database].ContainsKey(recepient.Name))
+            if (!string.IsNullOrEmpty(sender) && recepient.Name != sender && (!string.IsNullOrEmpty(message.Message) || message.Image != null || message.Image.Length != 0 ) && ChatClientsOfDb[database].ContainsKey(recepient.Name))
             {
                 message.SenderId = Clients.CallerState.Id;
                 message.SenderName = Clients.CallerState.UserName;

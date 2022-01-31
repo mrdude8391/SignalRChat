@@ -10,7 +10,16 @@ namespace PVChat.WPF.Services
     {
         private readonly NotifyIcon _notifyIcon;
         public event Action Notified;
-        public bool IsFocused { get; set; }
+        public event Action Focused;
+
+        private bool _isFocused;
+
+        public bool IsFocused
+        {
+            get { return _isFocused; }
+            set { _isFocused = value; OnFocused(); }
+        }
+
 
         private int _notifCount;
 
@@ -34,6 +43,7 @@ namespace PVChat.WPF.Services
 
         public void Notify(string title, string message)
         {
+            if (string.IsNullOrEmpty(message)) message = "New Message";
             _notifyIcon.ShowBalloonTip(200, title, message, ToolTipIcon.Info);
             NotifCount += 1;
         }
@@ -42,6 +52,11 @@ namespace PVChat.WPF.Services
         {
 
             Notified?.Invoke();
+        }
+
+        private void OnFocused()
+        {
+            Focused?.Invoke();
         }
         public void Close()
         {

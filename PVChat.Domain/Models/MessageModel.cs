@@ -36,6 +36,7 @@ namespace PVChat.Domain.Models
 
         public bool IsOriginNative { get; set; }
         public bool HasDateBreak { get; set; }
+        public byte[] Image { get; set; }
 
         public MessageModel()
         {
