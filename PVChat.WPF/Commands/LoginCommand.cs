@@ -5,6 +5,7 @@ using PVChat.WPF.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace PVChat.WPF.Commands
@@ -32,6 +33,13 @@ namespace PVChat.WPF.Commands
             {
                 await _chatService.Connect();
                 Participants = await _chatService.Login(_viewModel.Name, _viewModel.DatabaseName);
+                foreach (var participant in Participants)
+                {
+                    if (participant.Messages.Any(o => o.Unread == true))
+                    {
+                        participant.HasUnreadMessages = true;
+                    }
+                }
                 _viewModel.ErrorMessage = string.Empty;
                 _navService.CurrentViewModel = new PVChatViewModel(_chatService, _notifService, Participants, _viewModel.Name);
             }

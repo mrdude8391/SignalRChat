@@ -17,11 +17,11 @@ namespace PVChat.Domain.Models
             set { _online = value; OnPropertyChanged(nameof(Online)); }
         }
 
-        private bool _unread;
-        public bool Unread
+        private bool _hasUnreadMessages;
+        public bool HasUnreadMessages
         {
-            get { return _unread; }
-            set { _unread = value; OnPropertyChanged(nameof(Unread)); }
+            get { return _hasUnreadMessages; }
+            set { _hasUnreadMessages = value; OnPropertyChanged(nameof(HasUnreadMessages)); }
         }
         public ObservableCollection<MessageModel> Messages { get; set; }
 

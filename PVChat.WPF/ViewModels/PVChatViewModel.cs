@@ -105,6 +105,8 @@ namespace PVChat.WPF.ViewModels
             }
         }
 
+        public int MessageNotifCount { get; set; }
+
         public bool HasErrorMessage => !string.IsNullOrEmpty(ErrorMessage);
         public ObservableCollection<ParticipantModel> Participants { get; }
 
@@ -151,8 +153,36 @@ namespace PVChat.WPF.ViewModels
         {
             try
             {
-                var count = SelectedParticipant.Messages.Where(m => m.Unread == true).Count();
-                _notifService.NotifCount -= count;
+                int notifs = 0;
+                foreach (var p in Participants)
+                {
+                    notifs += p.Messages.Where(m => m.Unread == true).Count();
+                }
+
+                _notifService.NotifCount = notifs;
+                ReadMessagesOfSelectedParticipant();
+            }
+            catch (Exception)
+            {
+
+                return;
+            }
+            
+        }
+        private async void ReadMessagesOfSelectedParticipant()
+        {
+            try
+            {
+                SelectedParticipant.HasUnreadMessages = false;
+                var msgs = await _chatService.GetMessages(SelectedParticipant);
+
+                SetDateBreaks(msgs);
+                SelectedParticipant.Messages.Clear();
+                foreach (var msg in msgs)
+                {
+                    SelectedParticipant.Messages.Add(msg);
+
+                }
             }
             catch (Exception)
             {
@@ -175,10 +205,13 @@ namespace PVChat.WPF.ViewModels
             if (SelectedParticipant != null)
             {
                 var user = Participants.Where(u => u.Name == SelectedParticipant.Name).FirstOrDefault();
-                user.Unread = false;
-                var count = user.Messages.Where(m => m.Unread == true).Count();
+                user.HasUnreadMessages = false;
+
+                var count = user.Messages.Where(m => m.Unread == true && m.IsOriginNative == false).Count();
                 _notifService.NotifCount -= count;
+
                 var msgs = await _chatService.GetMessages(user);
+
                 SetDateBreaks(msgs);
                 SelectedParticipant.Messages.Clear();
                 foreach (var msg in msgs)
@@ -193,7 +226,7 @@ namespace PVChat.WPF.ViewModels
                 {
                     if (participant.Messages.Any(o => o.Unread == true))
                     {
-                        participant.Unread = true;
+                        participant.HasUnreadMessages = true;
                     }
                 }
             }
@@ -223,21 +256,16 @@ namespace PVChat.WPF.ViewModels
                 message.DeliveredTime = DateTime.Now;
                 message.Status = MessageStatus.Delivered;
 
-                if (IsParticipantSelected(message))
+                if (IsParticipantSelected(message) && _notifService.IsFocused) // if the chat is opened on the selected participant while the message is received
                 {
                     message.Unread = false;
                     SelectedParticipant.Messages.Add(message);
-                    
                 }
-                else
-                {
-                    //Notify
-                    participant.Messages.Add(message);
-                    participant.Unread = true;
-                }
-                if (_notifService.IsFocused != true)
+                else // the chat is either not opened or a different participant is selected
                 {
                     _notifService.Notify(message.SenderName, message.Message);
+                    participant.Messages.Add(message);
+                    participant.HasUnreadMessages = true;
                 }
             });
 
@@ -275,7 +303,7 @@ namespace PVChat.WPF.ViewModels
             App.Current.Dispatcher.Invoke((Action)delegate
             {
                 var participant = Participants.FirstOrDefault(o => o.Name == user.Name);
-                participant.Unread = false;
+                participant.HasUnreadMessages = false;
 
                 foreach (var msg in participant.Messages)
                 {
@@ -299,7 +327,7 @@ namespace PVChat.WPF.ViewModels
                     msg.Unread = message.Unread;
                     if (msg.Unread == false) // updates read status if message is read in another client instance
                     {
-                        participant.Unread = false;
+                        participant.HasUnreadMessages = false;
                     }
                 }
                 else // message was sent from another device. Adds message incase this client doesn't have it already but it should've been added during "MessageSent" verification

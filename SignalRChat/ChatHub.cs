@@ -179,16 +179,19 @@ namespace SignalRChat
                 if (user == msg.ReceiverName) //if the receiver of the message is the user
                 {
                     msg.IsOriginNative = false;
+                    msg.Unread = false; // user read the message
+                    Clients.Clients(participantConnections).UpdateMessagesReadStatus(userModel);
+
                 }
                 else
                 {
                     msg.IsOriginNative = true;
                 }
-                msg.Unread = false; // user read the message
+               
                 messages.Add(msg);
             }
 
-            Clients.Clients(participantConnections).UpdateMessagesReadStatus(userModel);
+            
             return messages.ToList();
         }
 

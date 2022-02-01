@@ -201,7 +201,7 @@
             </Border>
 
             <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding Unread}" Value="True">
+                <DataTrigger Binding="{Binding HasUnreadMessages}" Value="True">
                     <Setter TargetName="NewMessage" Property="Visibility" Value="Visible" />
                 </DataTrigger>
             </DataTemplate.Triggers>
