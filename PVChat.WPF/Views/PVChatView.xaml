@@ -250,9 +250,7 @@
                                 Cursor="Hand"
                                 SnapsToDevicePixels="True"
                                 Source="{Binding Image}"
-                                Stretch="None" >
-                                
-                            </Image>
+                                Stretch="None" />
                         </Viewbox>
 
                         <RichTextBox
@@ -280,6 +278,7 @@
                             VerticalAlignment="Bottom"
                             Foreground="Blue"
                             Kind="CheckAll"
+                            ToolTip="{Binding DeliveredTime}"
                             Visibility="Hidden" />
                         <materialDesign:PackIcon
                             Name="Sent"
@@ -289,6 +288,7 @@
                             Height="13"
                             Margin="2"
                             Kind="Check"
+                            ToolTip="{Binding CreatedTime}"
                             Visibility="Hidden" />
                         <materialDesign:PackIcon
                             Name="Delivered"
@@ -299,6 +299,7 @@
                             Margin="2"
                             FontSize="5"
                             Kind="CheckAll"
+                            ToolTip="{Binding CreatedTime}"
                             Visibility="Hidden" />
                         <TextBlock
                             Name="TimeBlock"
@@ -457,13 +458,13 @@
                     <TextBlock FontSize="24" Text="Send Message" />
 
                     <TextBox
-                        VerticalScrollBarVisibility="Auto"
-                        TextWrapping="Wrap"
                         AcceptsReturn="True"
                         BorderThickness="0"
                         CaretIndex="{x:Static System:Int32.MaxValue}"
                         FontFamily="{StaticResource Font}"
-                        Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}">
+                        Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
+                        TextWrapping="Wrap"
+                        VerticalScrollBarVisibility="Auto">
                         <TextBox.InputBindings>
                             <KeyBinding Key="Return" Command="{Binding SendMessageCommand}" />
 

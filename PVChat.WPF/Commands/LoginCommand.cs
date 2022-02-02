@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 namespace PVChat.WPF.Commands
 {
+    //Command Logs in user, gets participants, and messages
     public class LoginCommand : CommandBase
     {
         private readonly LoginViewModel _viewModel;

@@ -19,7 +19,6 @@ namespace SignalRChat
     public class ChatHub : Hub
     {
         private static ConcurrentDictionary<string, ConcurrentDictionary<string, ParticipantModel>> ChatClientsOfDb = new ConcurrentDictionary<string, ConcurrentDictionary<string, ParticipantModel>>();
-        private static ConcurrentDictionary<string, ParticipantModel> ChatClients = new ConcurrentDictionary<string, ParticipantModel>(); // remove soon
         private static ObservableCollection<MessageModel> MessageDb = new ObservableCollection<MessageModel>();
 
         
@@ -99,21 +98,6 @@ namespace SignalRChat
 
             return null;
         }
-
-
-        public List<string> GetAllConnectionIds(List<ParticipantModel> participants)
-        {
-            List<string> connections = new List<string>();
-
-            foreach (var p in participants)
-            {
-                connections.AddRange(p.Connections);
-            }
-
-            return connections;
-        }
-
-
         public void Logout()
         {
             string name = Clients.CallerState.UserName;
@@ -138,30 +122,7 @@ namespace SignalRChat
             }
         }
 
-        public override Task OnDisconnected(bool stopCalled)
-        {
-            var userName = ChatClients.SingleOrDefault(o => o.Value.Id == Context.ConnectionId).Key;
-            if (userName != null)
-            {
-                //
-                Clients.Others.ParticipantDisconnection(userName);
-                Console.WriteLine($"<> {userName} disconnected");
-            }
 
-            return base.OnDisconnected(stopCalled);
-        }
-
-        public override Task OnReconnected()
-        {
-            var userName = ChatClients.SingleOrDefault((c) => c.Value.Id == Context.ConnectionId).Key;
-            if (userName != null)
-            {
-                //
-                Clients.Others.ParticipantReconnection(userName);
-                Console.WriteLine($"== {userName} reconnected");
-            }
-            return base.OnReconnected();
-        }
 
         public List<MessageModel> GetMessages(ParticipantModel participant) // Gets messages for selected user and the caller
         {
@@ -282,6 +243,44 @@ namespace SignalRChat
 
             }
         }
+
+        public List<string> GetAllConnectionIds(List<ParticipantModel> participants)
+        {
+            List<string> connections = new List<string>();
+
+            foreach (var p in participants)
+            {
+                connections.AddRange(p.Connections);
+            }
+
+            return connections;
+        }
+
+
+        //public override Task OnDisconnected(bool stopCalled)
+        //{
+        //    var userName = ChatClients.SingleOrDefault(o => o.Value.Id == Context.ConnectionId).Key;
+        //    if (userName != null)
+        //    {
+        //        //
+        //        Clients.Others.ParticipantDisconnection(userName);
+        //        Console.WriteLine($"<> {userName} disconnected");
+        //    }
+
+        //    return base.OnDisconnected(stopCalled);
+        //}
+
+        //public override Task OnReconnected()
+        //{
+        //    var userName = ChatClients.SingleOrDefault((c) => c.Value.Id == Context.ConnectionId).Key;
+        //    if (userName != null)
+        //    {
+        //        //
+        //        Clients.Others.ParticipantReconnection(userName);
+        //        Console.WriteLine($"== {userName} reconnected");
+        //    }
+        //    return base.OnReconnected();
+        //}
 
     }
 }

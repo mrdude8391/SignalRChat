@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace PVChat.WPF.Commands
 {
+    //Command will open images in default image viewer
     public class OpenImageCommand : CommandBase
     {
         private readonly PVChatViewModel _viewModel;
-        
 
         public OpenImageCommand(PVChatViewModel viewModel)
         {

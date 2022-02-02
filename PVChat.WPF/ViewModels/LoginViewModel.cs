@@ -6,9 +6,8 @@ namespace PVChat.WPF.ViewModels
 {
     public class LoginViewModel : ViewModelBase
     {
-        private readonly SignalRChatService _chatService;
-        private readonly NavigationService _navService;
-        private readonly NotificationService _notifService;
+
+        #region Properties
         private string _name;
 
         public string Name
@@ -47,9 +46,14 @@ namespace PVChat.WPF.ViewModels
         {
             get { return _isConnected; }
             set { _isConnected = value; }
-        }
+        } 
+        #endregion
 
         public ICommand LoginCommand { get; } // COMMANDS NEED TO BE PUBLIC
+
+        private readonly SignalRChatService _chatService;
+        private readonly NavigationService _navService;
+        private readonly NotificationService _notifService;
 
         public LoginViewModel(NavigationService navService, SignalRChatService chatService, NotificationService notifService)
         {

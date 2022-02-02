@@ -13,7 +13,6 @@ namespace PVChat.WPF.Services
         public event Action Focused;
 
         private bool _isFocused;
-
         public bool IsFocused
         {
             get { return _isFocused; }
@@ -22,7 +21,6 @@ namespace PVChat.WPF.Services
 
 
         private int _notifCount;
-
         public int NotifCount
         {
             get { return _notifCount; }
@@ -48,20 +46,10 @@ namespace PVChat.WPF.Services
             NotifCount += 1;
         }
 
-        private void OnNotified()
-        {
+        private void OnNotified() {  Notified?.Invoke(); }
+        private void OnFocused() { Focused?.Invoke(); }
+        public void Close() { _notifyIcon.Dispose(); }
 
-            Notified?.Invoke();
-        }
-
-        private void OnFocused()
-        {
-            Focused?.Invoke();
-        }
-        public void Close()
-        {
-            _notifyIcon.Dispose();
-        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)

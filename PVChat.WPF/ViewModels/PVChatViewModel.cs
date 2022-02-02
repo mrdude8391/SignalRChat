@@ -5,12 +5,8 @@ using PVChat.WPF.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Linq;
-using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Interop;
 
 namespace PVChat.WPF.ViewModels
 {
@@ -54,16 +50,18 @@ namespace PVChat.WPF.ViewModels
                 OnPropertyChanged(nameof(Message));
             }
         }
+
         private byte[] _image;
 
         public byte[] Image
         {
             get { return _image; }
-            set { _image = value;
+            set
+            {
+                _image = value;
                 OnPropertyChanged(nameof(Image));
             }
         }
-
 
         private string _name;
 
@@ -76,8 +74,6 @@ namespace PVChat.WPF.ViewModels
                 OnPropertyChanged(nameof(Name));
             }
         }
-
-      
 
         private ParticipantModel _selectedParticipant;
 
@@ -105,17 +101,20 @@ namespace PVChat.WPF.ViewModels
             }
         }
 
-        public int MessageNotifCount { get; set; }
-
         public bool HasErrorMessage => !string.IsNullOrEmpty(ErrorMessage);
         public ObservableCollection<ParticipantModel> Participants { get; }
+        public int MessageNotifCount { get; set; }
 
         #endregion Properties
+
+        #region Commands
 
         public ICommand ConnectCommand { get; }
         public ICommand SendMessageCommand { get; }
         public ICommand SendImageCommand { get; }
         public ICommand OpenImageCommand { get; }
+
+        #endregion Commands
 
         private readonly ISignalRChatService _chatService;
         private readonly NotificationService _notifService;
@@ -126,12 +125,12 @@ namespace PVChat.WPF.ViewModels
             _notifService = notifService;
             _isConnected = true;
             _name = name;
+            Participants = new ObservableCollection<ParticipantModel>(participants);
 
             SendMessageCommand = new SendMessageCommand(this, _chatService);
             ConnectCommand = new ConnectCommand(this, _chatService);
             SendImageCommand = new SendImageCommand(this, _chatService);
             OpenImageCommand = new OpenImageCommand(this);
-
 
             _chatService.LoggedIn += OtherUserLoggedIn;
             _chatService.ParticipantLogout += OtherUserLoggedOut;
@@ -143,61 +142,9 @@ namespace PVChat.WPF.ViewModels
 
             _notifService.Focused += OnFocused;
 
-            Participants = new ObservableCollection<ParticipantModel>(participants);
             SelectedParticipant = Participants.FirstOrDefault();
 
             GetMessages();
-        }
-
-        private void OnFocused()
-        {
-            try
-            {
-                int notifs = 0;
-                foreach (var p in Participants)
-                {
-                    notifs += p.Messages.Where(m => m.Unread == true).Count();
-                }
-
-                _notifService.NotifCount = notifs;
-                ReadMessagesOfSelectedParticipant();
-            }
-            catch (Exception)
-            {
-
-                return;
-            }
-            
-        }
-        private async void ReadMessagesOfSelectedParticipant()
-        {
-            try
-            {
-                SelectedParticipant.HasUnreadMessages = false;
-                var msgs = await _chatService.GetMessages(SelectedParticipant);
-
-                SetDateBreaks(msgs);
-                SelectedParticipant.Messages.Clear();
-                foreach (var msg in msgs)
-                {
-                    SelectedParticipant.Messages.Add(msg);
-
-                }
-            }
-            catch (Exception)
-            {
-
-                return;
-            }
-            
-        }
-
-        private void SetVisibility() // send messages box visibility
-        {
-            if (SelectedParticipant != null)
-                SendMessageVisiblity = true;
-            else
-                SendMessageVisiblity = false;
         }
 
         private async void GetMessages() // Get messages of selected user
@@ -217,7 +164,6 @@ namespace PVChat.WPF.ViewModels
                 foreach (var msg in msgs)
                 {
                     SelectedParticipant.Messages.Add(msg);
-
                 }
             }
             else if (SelectedParticipant == null)
@@ -231,49 +177,6 @@ namespace PVChat.WPF.ViewModels
                 }
             }
         }
-
-        private List<MessageModel> SetDateBreaks(List<MessageModel> msgs)
-        {
-            DateTime firstDay = new DateTime();
-            foreach(var msg in msgs)
-            {
-                if(msg.CreatedTime.Date != firstDay.Date)
-                {
-                    msg.HasDateBreak = true;
-                    firstDay = msg.CreatedTime.Date;
-                }
-            }
-
-            return msgs;
-        }
-
-        private async void MessageReceived(MessageModel message) // add messages to list of messages when received from other user
-        {
-            ParticipantModel participant = Participants.FirstOrDefault(o => o.Name == message.SenderName);
-            
-            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
-            {
-                message.DeliveredTime = DateTime.Now;
-                message.Status = MessageStatus.Delivered;
-
-                if (IsParticipantSelected(message) && _notifService.IsFocused) // if the chat is opened on the selected participant while the message is received
-                {
-                    message.Unread = false;
-                    SelectedParticipant.Messages.Add(message);
-                }
-                else // the chat is either not opened or a different participant is selected
-                {
-                    _notifService.Notify(message.SenderName, message.Message);
-                    participant.Messages.Add(message);
-                    participant.HasUnreadMessages = true;
-                }
-            });
-
-            await _chatService.ConfirmMessageDelivered(participant, message); // tells the sender that message was delivered
-        }
-
-        private bool IsParticipantSelected(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName; // if message was receieved while chat was open or not
-        
 
         private void MessageSent(MessageModel message) // confirmation when message was sent
         {
@@ -298,6 +201,32 @@ namespace PVChat.WPF.ViewModels
             });
         }
 
+        private async void MessageReceived(MessageModel message) // add messages to list of messages when received from other user
+        {
+            ParticipantModel participant = Participants.FirstOrDefault(o => o.Name == message.SenderName);
+
+            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
+            {
+                message.DeliveredTime = DateTime.Now;
+                message.Status = MessageStatus.Delivered;
+
+                if (IsParticipantSelected(message) && _notifService.IsFocused) // if the chat is opened on the selected participant while the message is received
+                {
+                    message.Unread = false;
+                    SelectedParticipant.Messages.Add(message);
+                }
+                else // the chat is either not opened or a different participant is selected
+                {
+                    _notifService.Notify(message.SenderName, message.Message);
+                    participant.Messages.Add(message);
+                    participant.HasUnreadMessages = true;
+                }
+            });
+
+            await _chatService.ConfirmMessageDelivered(participant, message); // tells the sender that message was delivered
+        }
+
+        // if message was receieved while chat was open or not
         private void UpdateMessagesReadStatus(ParticipantModel user)
         {
             App.Current.Dispatcher.Invoke((Action)delegate
@@ -309,7 +238,29 @@ namespace PVChat.WPF.ViewModels
                 {
                     msg.Unread = false;
                 }
-                
+            });
+        }
+
+        private bool IsParticipantSelected(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName;
+
+        private void MessageDelivered(MessageModel message) // confirmation when message was delivered
+        {
+            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
+            {
+                var participant = Participants.FirstOrDefault(o => o.Name == message.ReceiverName);
+                var msg = participant.Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();// get message in list of participants
+
+                if (msg != null) // update message model
+                {
+                    msg.DeliveredTime = message.DeliveredTime;
+                    msg.Status = message.Status;
+                    msg.Unread = message.Unread;
+                }
+                else // message was sent from another device. Adds message incase this client doesn't have it already but it should've been added during "MessageSent" verification
+                {
+                    message.IsOriginNative = true;
+                    participant.Messages.Add(message);
+                }
             });
         }
 
@@ -329,27 +280,6 @@ namespace PVChat.WPF.ViewModels
                     {
                         participant.HasUnreadMessages = false;
                     }
-                }
-                else // message was sent from another device. Adds message incase this client doesn't have it already but it should've been added during "MessageSent" verification
-                {
-                    message.IsOriginNative = true;
-                    participant.Messages.Add(message);
-                }
-            });
-        }
-
-        private void MessageDelivered(MessageModel message) // confirmation when message was delivered
-        {
-            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
-            {
-                var participant = Participants.FirstOrDefault(o => o.Name == message.ReceiverName);
-                var msg = participant.Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();// get message in list of participants
-
-                if (msg != null) // update message model
-                {
-                    msg.DeliveredTime = message.DeliveredTime;
-                    msg.Status = message.Status;
-                    msg.Unread = message.Unread;
                 }
                 else // message was sent from another device. Adds message incase this client doesn't have it already but it should've been added during "MessageSent" verification
                 {
@@ -386,6 +316,68 @@ namespace PVChat.WPF.ViewModels
                     p.Online = user.Online;
                 }
             });
+        }
+
+        private void OnFocused()
+        {
+            try
+            {
+                int notifs = 0;
+                foreach (var p in Participants)
+                {
+                    notifs += p.Messages.Where(m => m.Unread == true).Count();
+                }
+
+                _notifService.NotifCount = notifs;
+                ReadMessagesOfSelectedParticipant();
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        private async void ReadMessagesOfSelectedParticipant()
+        {
+            try
+            {
+                SelectedParticipant.HasUnreadMessages = false;
+                var msgs = await _chatService.GetMessages(SelectedParticipant);
+
+                SetDateBreaks(msgs);
+                SelectedParticipant.Messages.Clear();
+                foreach (var msg in msgs)
+                {
+                    SelectedParticipant.Messages.Add(msg);
+                }
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        private void SetVisibility() // send messages box visibility
+        {
+            if (SelectedParticipant != null)
+                SendMessageVisiblity = true;
+            else
+                SendMessageVisiblity = false;
+        }
+
+        private List<MessageModel> SetDateBreaks(List<MessageModel> msgs)
+        {
+            DateTime firstDay = new DateTime();
+            foreach (var msg in msgs)
+            {
+                if (msg.CreatedTime.Date != firstDay.Date)
+                {
+                    msg.HasDateBreak = true;
+                    firstDay = msg.CreatedTime.Date;
+                }
+            }
+
+            return msgs;
         }
     }
 }

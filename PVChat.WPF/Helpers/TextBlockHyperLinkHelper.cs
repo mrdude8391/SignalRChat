@@ -10,6 +10,7 @@ using System.Globalization;
 
 namespace PVChat.WPF.Helpers
 {
+    //Attacthed property creates clickable links for RichTextBox's
     public class TextBlockHyperLinkHelper
     {
         

@@ -8,6 +8,7 @@ using System.Windows.Data;
 
 namespace PVChat.WPF.Converter
 {
+    // Converts the DateTime of message to determine what read receipt to display 
     [ValueConversion(typeof(string), typeof(Date))]
     class DateTimeFormatConverter : IValueConverter
     {
@@ -27,7 +28,6 @@ namespace PVChat.WPF.Converter
                 return Date.Today;
             }
             
-           
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

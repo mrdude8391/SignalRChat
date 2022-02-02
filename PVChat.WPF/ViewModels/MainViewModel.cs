@@ -10,6 +10,7 @@ using System.Windows.Input;
 
 namespace PVChat.WPF.ViewModels
 {
+    //Holds functionality of the chat base window
     public class MainViewModel : ViewModelBase
     {
         private readonly NavigationService _navService;

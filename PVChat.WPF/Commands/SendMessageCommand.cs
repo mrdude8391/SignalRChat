@@ -6,6 +6,7 @@ using System;
 
 namespace PVChat.WPF.Commands
 {
+    //Command sends messages to hub to participants
     public class SendMessageCommand : CommandBase
     {
         private readonly PVChatViewModel _viewModel;

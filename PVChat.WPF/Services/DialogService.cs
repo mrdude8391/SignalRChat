@@ -4,6 +4,7 @@ using System.Windows;
 
 namespace PVChat.WPF.Services
 {
+    //Service opens windows file explorer to select images to send
     public class DialogService
     {
         public string OpenFile(string caption, string filter = "All files (*.*)|*.*")

@@ -7,6 +7,7 @@ using System.Windows.Shell;
 
 namespace PVChat.WPF.Helpers
 {
+    //Helper for TaskBarItemInfo sets the overlay icon and notification count on task bar icon
     public class TaskBarItemHelper
     {
         public static readonly DependencyProperty TextProperty =
