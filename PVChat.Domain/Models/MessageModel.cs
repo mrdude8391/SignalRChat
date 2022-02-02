@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PVChat.Domain.Models
 {
-    public class MessageModel :ModelBase
+    public class MessageModel : ModelBase
     {
         public string MessageId { get; set; }
         public string SenderId { get; set; }
         public string ReceiverId { get; set; }
         public string SenderName { get; set; }
-        public string  ReceiverName { get; set; }
+        public string ReceiverName { get; set; }
         public string Message { get; set; }
+        public byte[] Image { get; set; }
 
         private MessageStatus _status;
 
@@ -28,6 +25,7 @@ namespace PVChat.Domain.Models
         public DateTime DeliveredTime { get; set; }
 
         private bool _unread;  // Unread can maybe be moved to MessageStatus
+
         public bool Unread
         {
             get { return _unread; }
@@ -36,7 +34,6 @@ namespace PVChat.Domain.Models
 
         public bool IsOriginNative { get; set; }
         public bool HasDateBreak { get; set; }
-        public byte[] Image { get; set; }
 
         public MessageModel()
         {
@@ -46,7 +43,6 @@ namespace PVChat.Domain.Models
             Unread = true;
             HasDateBreak = false;
         }
-
     }
 
     public enum MessageStatus
@@ -55,6 +51,5 @@ namespace PVChat.Domain.Models
         Sent,
         Delivered,
         Failed
-
     }
 }

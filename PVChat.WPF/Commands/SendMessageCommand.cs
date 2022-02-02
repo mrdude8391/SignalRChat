@@ -29,8 +29,8 @@ namespace PVChat.WPF.Commands
                     {
                         //MessageId = Default
                         //SenderId = Get in hub
-                        ReceiverId = _viewModel.SelectedParticipant.Id,
-                        ReceiverName = _viewModel.SelectedParticipant.Name,
+                        ReceiverId = recepient.Id,
+                        ReceiverName = recepient.Name,
                         Message = _viewModel.Message,
                         Image = _viewModel.Image,
                         //Status = default,
@@ -40,10 +40,7 @@ namespace PVChat.WPF.Commands
                         IsOriginNative = true,
                     };
 
-
-                    //_viewModel.SelectedMessages.Add(newMessage);
                     _viewModel.SelectedParticipant.Messages.Add(newMessage);
-
                     _viewModel.ErrorMessage = string.Empty;
                     _viewModel.Message = string.Empty;
                     _viewModel.Image = null;

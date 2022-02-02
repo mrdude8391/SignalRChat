@@ -7,9 +7,11 @@ namespace PVChat.Domain.Models
 {
     public class ParticipantModel : ModelBase
     {
-        public string Id { get; set; } //remove
+        public string Id { get; set; }
         public string Name { get; set; }
-
+        public string DatabaseName { get; set; }
+        public ObservableCollection<MessageModel> Messages { get; set; }
+        public List<string> Connections { get; set; }
         private bool _online;
         public bool Online
         {
@@ -23,17 +25,11 @@ namespace PVChat.Domain.Models
             get { return _hasUnreadMessages; }
             set { _hasUnreadMessages = value; OnPropertyChanged(nameof(HasUnreadMessages)); }
         }
-        public ObservableCollection<MessageModel> Messages { get; set; }
-
-        public List<string> Connections { get; set; }
-        public string DatabaseName { get; set; }
 
         public ParticipantModel()
         {
             Messages = new ObservableCollection<MessageModel>();
             Connections = new List<string>();
         }
-
-        
     }
 }

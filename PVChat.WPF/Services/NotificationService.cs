@@ -43,7 +43,6 @@ namespace PVChat.WPF.Services
         {
             if (string.IsNullOrEmpty(message)) message = "New Message";
             _notifyIcon.ShowBalloonTip(200, title, message, ToolTipIcon.Info);
-            NotifCount += 1;
         }
 
         private void OnNotified() {  Notified?.Invoke(); }

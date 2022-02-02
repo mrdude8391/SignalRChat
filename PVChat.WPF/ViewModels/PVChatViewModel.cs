@@ -137,158 +137,141 @@ namespace PVChat.WPF.ViewModels
             _chatService.MessageReceived += MessageReceived;
             _chatService.MessageSent += MessageSent;
             _chatService.MessageDelivered += MessageDelivered;
-            _chatService.MessageDeliveredForReceivers += MessageDeliveredForReceivers;
             _chatService.UpdateMessagesReadStatus += UpdateMessagesReadStatus;
 
             _notifService.Focused += OnFocused;
 
             SelectedParticipant = Participants.FirstOrDefault();
 
-            GetMessages();
         }
 
-        private async void GetMessages() // Get messages of selected user
+        private async void GetMessages() // Get messages of selected user, called when user clicks on participant
         {
-            if (SelectedParticipant != null)
+            try
             {
-                var user = Participants.Where(u => u.Name == SelectedParticipant.Name).FirstOrDefault();
-                user.HasUnreadMessages = false;
-
-                var count = user.Messages.Where(m => m.Unread == true && m.IsOriginNative == false).Count();
-                _notifService.NotifCount -= count;
-
-                var msgs = await _chatService.GetMessages(user);
-
-                SetDateBreaks(msgs);
-                SelectedParticipant.Messages.Clear();
-                foreach (var msg in msgs)
+                if (SelectedParticipant != null)
                 {
-                    SelectedParticipant.Messages.Add(msg);
-                }
-            }
-            else if (SelectedParticipant == null)
-            {
-                foreach (var participant in Participants)
-                {
-                    if (participant.Messages.Any(o => o.Unread == true))
+                    var user = Participants.Where(u => u.Name == SelectedParticipant.Name).FirstOrDefault(); // Remove new message icon
+                    user.HasUnreadMessages = false;
+
+                    var count = user.Messages.Where(m => m.Unread == true && m.IsOriginNative == false).Count(); // Clear new notification count for the participant
+                    _notifService.NotifCount -= count;
+
+                    var msgs = await _chatService.GetMessages(user); // Get messages from the hub - db
+
+                    SetDateBreaks(msgs);
+
+                    // Might need to be changed if local storage is used for efficieny purposes
+                    SelectedParticipant.Messages.Clear(); // Clear all old messages and updates with new ones
+                    foreach (var msg in msgs)
                     {
-                        participant.HasUnreadMessages = true;
+                        SelectedParticipant.Messages.Add(msg);
+                    }
+                }
+                else if (SelectedParticipant == null) // If no participant is selected
+                {
+                    foreach (var participant in Participants)
+                    {
+                        if (participant.Messages.Any(o => o.Unread == true))
+                        {
+                            participant.HasUnreadMessages = true;
+                        }
                     }
                 }
             }
+            catch (Exception)
+            {
+                return;
+            }
+            
         }
 
-        private void MessageSent(MessageModel message) // confirmation when message was sent
+        private void MessageSent(MessageModel message) // Sender Calls: Message was sent to the Hub, syncs data for sender
         {
-            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
+            App.Current.Dispatcher.Invoke((Action)delegate //
             {
                 var participant = Participants.FirstOrDefault(o => o.Name == message.ReceiverName);
                 var msg = participant.Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();// get message in list of participants
 
-                if (msg != null) // update message model
+                if (msg != null) // update message model 
                 {
                     msg.SenderId = message.SenderId;
                     msg.SenderName = message.SenderName;
                     msg.SentTime = message.SentTime;
                     msg.Status = message.Status;
                 }
-                else // message was sent from user on another device
+                else // add message if no message is found (syncing with other connections)
                 {
                     message.IsOriginNative = true;
-                    message.Unread = false;
                     participant.Messages.Add(message);
                 }
             });
         }
 
-        private async void MessageReceived(MessageModel message) // add messages to list of messages when received from other user
+        private void MessageDelivered(MessageModel message) // Sender Calls: Message was delivered to receiver, syncs message data for sender
         {
-            ParticipantModel participant = Participants.FirstOrDefault(o => o.Name == message.SenderName);
+            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
+            {
+                var participant = Participants.FirstOrDefault(o => o.Name == message.ReceiverName);
+                var msg = participant.Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault(); // get message in list of participants
+
+                if (msg != null) // update message model
+                {
+                    msg.DeliveredTime = message.DeliveredTime;
+                    msg.Status = message.Status;
+                    msg.Unread = message.Unread;
+                }
+                else // message was sent from another device. Adds message incase this client doesn't have it already but it should've been added during "MessageSent" verification
+                {
+                    message.IsOriginNative = true;
+                    participant.Messages.Add(message);
+                }
+            });
+        }
+
+        private async void MessageReceived(MessageModel message) // Receiver Calls: Add message to list of messages from sender 
+        {
+            ParticipantModel sender = Participants.FirstOrDefault(o => o.Name == message.SenderName);
 
             App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
             {
                 message.DeliveredTime = DateTime.Now;
                 message.Status = MessageStatus.Delivered;
 
-                if (IsParticipantSelected(message) && _notifService.IsFocused) // if the chat is opened on the selected participant while the message is received
+                if (IsParticipantSelected(message) ) // if the chat is opened on the selected participant while the message is received && _notifService.IsFocused
                 {
                     message.Unread = false;
-                    SelectedParticipant.Messages.Add(message);
                 }
-                else // the chat is either not opened or a different participant is selected
+                else if(!IsParticipantSelected(message) && _notifService.IsFocused) // the chat is either not opened or a different participant is selected
+                {
+                    sender.HasUnreadMessages = true;
+                }
+                else 
                 {
                     _notifService.Notify(message.SenderName, message.Message);
-                    participant.Messages.Add(message);
-                    participant.HasUnreadMessages = true;
+                    sender.HasUnreadMessages = true;
                 }
+                sender.Messages.Add(message);
             });
 
-            await _chatService.ConfirmMessageDelivered(participant, message); // tells the sender that message was delivered
-        }
-
-        // if message was receieved while chat was open or not
-        private void UpdateMessagesReadStatus(ParticipantModel user)
-        {
-            App.Current.Dispatcher.Invoke((Action)delegate
-            {
-                var participant = Participants.FirstOrDefault(o => o.Name == user.Name);
-                participant.HasUnreadMessages = false;
-
-                foreach (var msg in participant.Messages)
-                {
-                    msg.Unread = false;
-                }
-            });
+            await _chatService.ConfirmMessageDelivered(sender, message); // tells the sender that message was delivered
         }
 
         private bool IsParticipantSelected(MessageModel message) => SelectedParticipant != null && SelectedParticipant.Name == message.SenderName;
 
-        private void MessageDelivered(MessageModel message) // confirmation when message was delivered
-        {
-            App.Current.Dispatcher.Invoke((Action)delegate // <-- LINE
-            {
-                var participant = Participants.FirstOrDefault(o => o.Name == message.ReceiverName);
-                var msg = participant.Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();// get message in list of participants
-
-                if (msg != null) // update message model
-                {
-                    msg.DeliveredTime = message.DeliveredTime;
-                    msg.Status = message.Status;
-                    msg.Unread = message.Unread;
-                }
-                else // message was sent from another device. Adds message incase this client doesn't have it already but it should've been added during "MessageSent" verification
-                {
-                    message.IsOriginNative = true;
-                    participant.Messages.Add(message);
-                }
-            });
-        }
-
-        private void MessageDeliveredForReceivers(MessageModel message) // syncs message to hub when the message is delivered
+        
+        private void UpdateMessagesReadStatus(ParticipantModel user) // Sender Calls : The receiver has read the messages, syncs for sender
         {
             App.Current.Dispatcher.Invoke((Action)delegate
             {
-                var participant = Participants.FirstOrDefault(o => o.Name == message.SenderName);
-                var msg = participant.Messages.Where(m => m.MessageId == message.MessageId).FirstOrDefault();
+                var participant = Participants.FirstOrDefault(o => o.Name == user.Name);
 
-                if (msg != null) // update message model
+                foreach (var msg in participant.Messages)
                 {
-                    msg.DeliveredTime = message.DeliveredTime;
-                    msg.Status = message.Status;
-                    msg.Unread = message.Unread;
-                    if (msg.Unread == false) // updates read status if message is read in another client instance
-                    {
-                        participant.HasUnreadMessages = false;
-                    }
-                }
-                else // message was sent from another device. Adds message incase this client doesn't have it already but it should've been added during "MessageSent" verification
-                {
-                    message.IsOriginNative = true;
-                    participant.Messages.Add(message);
+                    ReadMessage(msg);
                 }
             });
         }
-
         private void OtherUserLoggedIn(ParticipantModel user)
         {
             App.Current.Dispatcher.Invoke((Action)delegate
@@ -329,7 +312,7 @@ namespace PVChat.WPF.ViewModels
                 }
 
                 _notifService.NotifCount = notifs;
-                ReadMessagesOfSelectedParticipant();
+                //ReadMessagesOfSelectedParticipant();
             }
             catch (Exception)
             {
@@ -378,6 +361,12 @@ namespace PVChat.WPF.ViewModels
             }
 
             return msgs;
+        }
+
+        private MessageModel ReadMessage(MessageModel message)
+        {
+            message.Unread = false;
+            return message;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace PVChat.WPF.Commands
                 Participants = await _chatService.Login(_viewModel.Name, _viewModel.DatabaseName);
                 foreach (var participant in Participants)
                 {
-                    if (participant.Messages.Any(o => o.Unread == true))
+                    if (participant.Messages.Any(o => o.Unread == true && o.IsOriginNative == false))
                     {
                         participant.HasUnreadMessages = true;
                     }
