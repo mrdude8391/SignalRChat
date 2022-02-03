@@ -46,12 +46,12 @@ namespace PVChat.WPF
         // enables and disables windows notifications depending on if the chat client is open or not
         protected override void OnActivated(EventArgs e)
         {
-            notifService.IsFocused = App.Current.MainWindow.IsActive;
+            notifService.IsFocused = true;
         }
 
         protected override void OnDeactivated(EventArgs e)
         {
-            notifService.IsFocused = App.Current.MainWindow.IsActive;
+            notifService.IsFocused = false;
         }
 
         

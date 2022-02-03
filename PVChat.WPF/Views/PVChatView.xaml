@@ -90,6 +90,7 @@
             <Setter Property="Width" Value="50" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="IsEnabled" Value="False" />
+            <Setter Property="Opacity" Value="0.5" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -121,7 +122,7 @@
                 </DataTrigger>
 
                 <Trigger Property="IsEnabled" Value="True">
-                    <Setter Property="Background" Value="#b8b8b8" />
+                    <Setter Property="Opacity" Value="100" />
                 </Trigger>
 
                 <Trigger Property="IsMouseOver" Value="True">
@@ -268,39 +269,58 @@
 
                         <!--  Text="{Binding Message}"  -->
                         <!--  helpers:TextBlockHyperLinkHelper.Text="{Binding Message}"  -->
-                        <materialDesign:PackIcon
-                            Name="Read"
+
+                        <Border
                             Grid.Row="2"
                             Grid.Column="2"
-                            Width="13"
-                            Height="13"
-                            Margin="2"
-                            VerticalAlignment="Bottom"
-                            Foreground="Blue"
-                            Kind="CheckAll"
-                            ToolTip="{Binding DeliveredTime}"
-                            Visibility="Hidden" />
-                        <materialDesign:PackIcon
-                            Name="Sent"
+                            Background="Transparent"
+                            ToolTip="{Binding DeliveredTime}">
+                            <materialDesign:PackIcon
+                                Name="Read"
+                                Width="13"
+                                Height="13"
+                                Margin="2"
+                                VerticalAlignment="Bottom"
+                                Foreground="Blue"
+                                Kind="CheckAll"
+                                Visibility="Hidden" />
+                        </Border>
+
+                        <Border
                             Grid.Row="2"
                             Grid.Column="2"
-                            Width="13"
-                            Height="13"
-                            Margin="2"
-                            Kind="Check"
-                            ToolTip="{Binding CreatedTime}"
-                            Visibility="Hidden" />
-                        <materialDesign:PackIcon
-                            Name="Delivered"
+                            Background="Transparent"
+                            ToolTip="{Binding SentTime}">
+                            <materialDesign:PackIcon
+                                Name="Sent"
+                                Grid.Row="2"
+                                Grid.Column="2"
+                                Width="13"
+                                Height="13"
+                                Margin="2"
+                                Kind="Check"
+                                ToolTip="{Binding SentTime}"
+                                Visibility="Hidden" />
+
+                        </Border>
+
+                        <Border
                             Grid.Row="2"
                             Grid.Column="2"
-                            Width="13"
-                            Height="13"
-                            Margin="2"
-                            FontSize="5"
-                            Kind="CheckAll"
-                            ToolTip="{Binding CreatedTime}"
-                            Visibility="Hidden" />
+                            Background="Transparent"
+                            ToolTip="{Binding DeliveredTime}">
+                            <materialDesign:PackIcon
+                                Name="Delivered"
+                                Grid.Row="2"
+                                Grid.Column="2"
+                                Width="13"
+                                Height="13"
+                                Margin="2"
+                                FontSize="5"
+                                Kind="CheckAll"
+                                ToolTip="{Binding DeliveredTime}"
+                                Visibility="Hidden" />
+                        </Border>
                         <TextBlock
                             Name="TimeBlock"
                             Grid.Row="2"
@@ -450,6 +470,10 @@
                 CornerRadius="10"
                 Visibility="{Binding Path=SendMessageVisiblity, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid Visibility="{Binding Path=SendMessageVisiblity, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -460,7 +484,6 @@
                     <TextBox
                         AcceptsReturn="True"
                         BorderThickness="0"
-                        CaretIndex="{x:Static System:Int32.MaxValue}"
                         FontFamily="{StaticResource Font}"
                         Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
                         TextWrapping="Wrap"
@@ -470,13 +493,14 @@
 
                         </TextBox.InputBindings>
                     </TextBox>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom" >
                         <Button
                             Grid.Column="2"
                             BorderThickness="0"
                             Command="{Binding SendImageCommand}"
                             Content="{StaticResource PaperClipIcon}"
                             IsEnabled="True"
+                            Opacity="1"
                             Style="{StaticResource SendButtonStyle}" />
 
                         <Button
@@ -486,6 +510,22 @@
                             Content="{StaticResource SendIcon}"
                             Style="{StaticResource SendButtonStyle}" />
                     </StackPanel>
+                    <Border
+                        Grid.Row="1"
+                        CornerRadius="12"
+                        BorderBrush="Black"
+                        BorderThickness="1"
+                        
+                        HorizontalAlignment="Left">
+                        <Viewbox
+                            StretchDirection="DownOnly">
+                            <Image
+                                Cursor="Hand"
+                                SnapsToDevicePixels="True"
+                                Source="{Binding Image}"
+                                Stretch="None" />
+                        </Viewbox>
+                    </Border>
 
                 </Grid>
             </Border>

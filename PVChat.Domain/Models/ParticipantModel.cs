@@ -11,6 +11,7 @@ namespace PVChat.Domain.Models
         public string Name { get; set; }
         public string DatabaseName { get; set; }
         public ObservableCollection<MessageModel> Messages { get; set; }
+        public int NotifCount { get; set; }
         public List<string> Connections { get; set; }
         private bool _online;
         public bool Online
@@ -31,5 +32,12 @@ namespace PVChat.Domain.Models
             Messages = new ObservableCollection<MessageModel>();
             Connections = new List<string>();
         }
+
+        public int CountNotifs()
+        {
+            NotifCount = Messages.Where(m => m.Unread == true && m.IsOriginNative == false).Count();
+            return NotifCount;
+        }
+        
     }
 }

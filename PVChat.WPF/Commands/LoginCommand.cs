@@ -39,8 +39,11 @@ namespace PVChat.WPF.Commands
                     if (participant.Messages.Any(o => o.Unread == true && o.IsOriginNative == false))
                     {
                         participant.HasUnreadMessages = true;
+                        _notifService.NotifCount += participant.CountNotifs();
                     }
+                    
                 }
+                
                 _viewModel.ErrorMessage = string.Empty;
                 _navService.CurrentViewModel = new PVChatViewModel(_chatService, _notifService, Participants, _viewModel.Name);
             }

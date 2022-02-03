@@ -34,6 +34,10 @@ namespace PVChat.WPF.Commands
             {
                 var recepient = _viewModel.SelectedParticipant.Name;
                 _viewModel.Image = img;
+                if (string.IsNullOrEmpty(_viewModel.Message))
+                {
+                    _viewModel.Message = " ";
+                }
                 // _chatService.SendImage(recepient, img);
             }
             catch (Exception)

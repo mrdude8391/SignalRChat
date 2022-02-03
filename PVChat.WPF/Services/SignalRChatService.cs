@@ -63,5 +63,10 @@ namespace PVChat.WPF.Services
         {
             await _proxy.Invoke("ConfirmMessageDelivered", new object[] { sender, message });
         }
+
+        public async Task ReadMessage(ParticipantModel sender, MessageModel message)
+        {
+            await _proxy.Invoke("ReadMessage", new object[] { sender, message });
+        }
     }
 }

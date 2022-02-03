@@ -135,7 +135,7 @@ namespace SignalRChat
                 if (user == msg.ReceiverName) //if the user is not the author
                 {
                     msg.IsOriginNative = false;
-                    ReadMessage(msg);
+                    msg.Unread = false;
                 }
                 else // user is the author
                 {
@@ -225,6 +225,17 @@ namespace SignalRChat
             }
         }
 
+        public async Task ReadMessage(ParticipantModel sender, MessageModel message)
+        {
+            ParticipantModel receiverModel = ChatClientsOfDb[sender.DatabaseName][message.ReceiverName];
+            MessageModel databaseMessage = MessageDb.Where(m => m.MessageId == message.MessageId).FirstOrDefault();
+            
+            if(databaseMessage.Unread == true)
+            {
+                databaseMessage.Unread = false;
+            }
+            await Clients.Clients(sender.Connections).UpdateMessagesReadStatus(receiverModel);
+        }
         
 
         public List<string> GetAllConnectionIds(List<ParticipantModel> participants)
@@ -239,11 +250,7 @@ namespace SignalRChat
             return connections;
         }
 
-        private MessageModel ReadMessage(MessageModel message)
-        {
-            message.Unread = false;
-            return message;
-        }
+       
 
         //public override Task OnDisconnected(bool stopCalled)
         //{

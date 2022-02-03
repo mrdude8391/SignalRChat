@@ -23,6 +23,7 @@ namespace PVChat.Domain.Services
         Task ConfirmMessageDelivered(ParticipantModel sender, MessageModel message);
         Task<List<ParticipantModel>> Login(string Name, string Database);
         Task<List<MessageModel>> GetMessages(ParticipantModel user);
+        Task ReadMessage(ParticipantModel sender, MessageModel message);
        
     }
 }
