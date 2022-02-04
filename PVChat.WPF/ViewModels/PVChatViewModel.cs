@@ -148,6 +148,7 @@ namespace PVChat.WPF.ViewModels
 
         }
 
+        //Will need to get from database and then probably stored locally maybe
         private async void GetMessages() // Get messages of selected user, called when user clicks on participant
         {
             try

@@ -45,6 +45,8 @@ namespace PVChat.WPF.Commands
                     _viewModel.Message = string.Empty;
                     _viewModel.Image = null;
                     await _chatService.SendMessage(recepient, newMessage);
+
+                    // add message to database
                 }
                 
             }

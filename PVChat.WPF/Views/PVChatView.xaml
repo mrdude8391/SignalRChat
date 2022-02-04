@@ -88,6 +88,7 @@
         <Style x:Key="SendButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Width" Value="50" />
+            <Setter Property="Height" Value="35" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="IsEnabled" Value="False" />
             <Setter Property="Opacity" Value="0.5" />
@@ -471,7 +472,7 @@
                 Visibility="{Binding Path=SendMessageVisiblity, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid Visibility="{Binding Path=SendMessageVisiblity, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -493,7 +494,10 @@
 
                         </TextBox.InputBindings>
                     </TextBox>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom" >
+                    <StackPanel
+                        Grid.Column="2"
+                        VerticalAlignment="Bottom"
+                        Orientation="Horizontal">
                         <Button
                             Grid.Column="2"
                             BorderThickness="0"
@@ -510,24 +514,82 @@
                             Content="{StaticResource SendIcon}"
                             Style="{StaticResource SendButtonStyle}" />
                     </StackPanel>
+
                     <Border
                         Grid.Row="1"
-                        CornerRadius="12"
+                        MaxWidth="60"
+                        MaxHeight="60"
+                        HorizontalAlignment="Left"
                         BorderBrush="Black"
                         BorderThickness="1"
-                        
-                        HorizontalAlignment="Left">
-                        <Viewbox
-                            StretchDirection="DownOnly">
+                        CornerRadius="12">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Hidden" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Image, Converter={StaticResource ImageToBoolConverter}}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Grid
+                            MaxWidth="60"
+                            MaxHeight="60"
+                            >
+                            <Border Name="ImagePreviewBorder" MaxHeight="60" MaxWidth="60" CornerRadius="12" Background="White" BorderThickness="1" BorderBrush="White" />
+                            
+                                <Image
+                                Cursor="Hand"
+                                SnapsToDevicePixels="True"
+                                Source="{Binding Image}"
+                                Stretch="Fill" >
+                                    <Image.OpacityMask>
+                                        <VisualBrush Visual="{Binding ElementName=ImagePreviewBorder}" />
+                                    </Image.OpacityMask>
+                                </Image>
+                                
+                           
+
+                        </Grid>
+                    </Border>
+                    
+
+                    <!--<Border
+                        Name="ImagePreviewBorder"
+                        Grid.Row="1"
+                        MaxWidth="60"
+                        MaxHeight="60"
+                        HorizontalAlignment="Left"
+                        BorderBrush="Black"
+                        BorderThickness="1"
+                        CornerRadius="12">
+
+                        <Viewbox Stretch="UniformToFill" StretchDirection="DownOnly">
                             <Image
                                 Cursor="Hand"
                                 SnapsToDevicePixels="True"
                                 Source="{Binding Image}"
                                 Stretch="None" />
-                        </Viewbox>
-                    </Border>
 
+                        </Viewbox>
+
+
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Hidden" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Image, Converter={StaticResource ImageToBoolConverter}}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>-->
                 </Grid>
+
+
+
             </Border>
         </Grid>
     </Grid>
