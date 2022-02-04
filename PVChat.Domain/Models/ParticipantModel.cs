@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -14,6 +13,7 @@ namespace PVChat.Domain.Models
         public int NotifCount { get; set; }
         public List<string> Connections { get; set; }
         private bool _online;
+
         public bool Online
         {
             get { return _online; }
@@ -21,6 +21,7 @@ namespace PVChat.Domain.Models
         }
 
         private bool _hasUnreadMessages;
+
         public bool HasUnreadMessages
         {
             get { return _hasUnreadMessages; }
@@ -38,6 +39,5 @@ namespace PVChat.Domain.Models
             NotifCount = Messages.Where(m => m.Unread == true && m.IsOriginNative == false).Count();
             return NotifCount;
         }
-        
     }
 }

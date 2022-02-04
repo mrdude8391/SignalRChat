@@ -116,6 +116,7 @@ namespace PVChat.WPF.ViewModels
         public ICommand SendMessageCommand { get; }
         public ICommand SendImageCommand { get; }
         public ICommand OpenImageCommand { get; }
+        public ICommand ClearImageCommand { get; }
 
         #endregion Commands
 
@@ -134,6 +135,7 @@ namespace PVChat.WPF.ViewModels
             ConnectCommand = new ConnectCommand(this, _chatService);
             SendImageCommand = new SendImageCommand(this, _chatService);
             OpenImageCommand = new OpenImageCommand(this);
+            ClearImageCommand = new ClearImageCommand(this);
 
             _chatService.LoggedIn += OtherUserLoggedIn;
             _chatService.ParticipantLogout += OtherUserLoggedOut;
